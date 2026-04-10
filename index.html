@@ -2,202 +2,270 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" id="meta-theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff">
   
   <title>Service - Itaquera</title>
   <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@300;800&display=swap" rel="stylesheet">
   
   <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-main: #1d1d1f;
+      --text-muted: #86868b;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background-color: #ffffff; font-family: 'Inter', sans-serif; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background-color: var(--bg-color); font-family: 'Inter', sans-serif; }
 
-    /* ----------------------------------
-       O IFRAME (ESCONDIDO INICIALMENTE)
-    ----------------------------------- */
+    /* --- OFFLINE TOAST (Adaptado para Fundo Claro) --- */
+    #offline-toast {
+      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 59, 48, 0.15); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 59, 48, 0.4); padding: 12px 24px; border-radius: 30px;
+      z-index: 10000; display: flex; align-items: center; gap: 10px;
+      font-weight: 600; font-size: 0.9rem; color: #ff3b30;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #offline-toast.show { top: env(safe-area-inset-top, 20px); }
+
+    /* --- O IFRAME (Sandboxing Robusto) --- */
     #app-frame {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      border: none; z-index: 1; opacity: 0; /* Começa invisível */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      transition: opacity 1s ease-in-out; /* Revelação suave */
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: none; display: block; opacity: 0; visibility: hidden;
+      padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+      transition: opacity 0.8s ease-in, visibility 0.8s;
+      z-index: 1;
     }
+    #app-frame.loaded { opacity: 1; visibility: visible; }
 
-    /* ----------------------------------
-       SPLASH SCREEN (A COREOGRAFIA)
-    ----------------------------------- */
-    #splash-screen {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 10; background-color: #ffffff; /* Fundo branco sólido para tapar o GAS */
-      overflow: hidden; display: flex; flex-direction: column; align-items: center;
-      transition: opacity 0.8s ease-in-out, visibility 0.8s;
+    /* --- SPLASH SCREEN PRINCIPAL --- */
+    #splash {
+      position: fixed; inset: 0; background: var(--bg-color);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 9000; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
     }
+    #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    /* Animação abstrata de fundo (Atrás do vidro) */
-    .background-blobs {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 11;
-      opacity: 0; transition: opacity 1.5s ease-in-out; /* Surgem junto com o painel */
-    }
+    /* --- ANIMAÇÕES DE FUNDO (Luzes Suaves) --- */
     .blob {
-      position: absolute; border-radius: 50%; filter: blur(60px); animation: float 12s infinite ease-in-out alternate;
+      position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.4;
+      will-change: transform; animation: floatBlobs 15s infinite alternate ease-in-out;
     }
-    /* Cores suaves e modernas para contrastar com o branco */
-    .blob.um { width: 350px; height: 350px; background: rgba(0, 113, 227, 0.15); top: 10%; left: -10%; }
-    .blob.dois { width: 450px; height: 450px; background: rgba(255, 149, 0, 0.15); bottom: 10%; right: -15%; animation-delay: -6s; }
+    /* Usando blend-mode multiply para luzes sutis em fundo branco */
+    .blob-1 { width: 45vw; height: 45vw; max-width: 500px; max-height: 500px; background: #0071e3; top: -10%; left: -10%; animation-delay: 0s; mix-blend-mode: multiply; }
+    .blob-2 { width: 55vw; height: 55vw; max-width: 600px; max-height: 600px; background: #ff9500; bottom: -10%; right: -10%; animation-delay: -5s; mix-blend-mode: multiply;}
+    .blob-3 { width: 40vw; height: 40vw; max-width: 400px; max-height: 400px; background: #34c759; top: 40%; left: 30%; animation-delay: -10s; mix-blend-mode: multiply;}
 
-    @keyframes float {
+    @keyframes floatBlobs {
       0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(40px, -60px) scale(1.1); }
+      50% { transform: translate(8vw, 12vh) scale(1.1); }
+      100% { transform: translate(-8vw, -8vh) scale(0.9); }
     }
 
-    /* O Vidro Fosco (Inicia invisível) */
-    #glass-panel {
-      z-index: 12; background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 24px; padding: 50px 30px;
-      text-align: center; width: 90%; max-width: 380px; 
-      margin-top: 18vh; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-      
-      /* Estado Inicial (Escondido e levemente para baixo) */
-      opacity: 0; transform: translateY(30px);
-      transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    /* O Vidro Fosco Geral da Tela */
+    #glass-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+      background: rgba(255, 255, 255, 0.4);
     }
 
-    /* Classe ativada pelo JS para mostrar o painel */
-    #glass-panel.show { opacity: 1; transform: translateY(0); }
-
-    .welcome-text { font-size: 1rem; font-weight: 600; color: #86868b; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
-    .title-text { 
-      font-family: 'Montserrat', sans-serif; /* Fonte Elegante */
-      font-size: 3.2rem; font-weight: 800; color: #1d1d1f; margin-bottom: 40px; letter-spacing: -2px; 
-    }
-
-    .btn-start {
-      background: #000000; color: #ffffff; border: none; border-radius: 50px;
-      padding: 18px 32px; font-size: 1.1rem; font-weight: 600; width: 100%;
-      cursor: pointer; transition: transform 0.2s, background 0.2s;
-    }
-    .btn-start:active { transform: scale(0.96); }
-    .btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: not-allowed; }
-
-    /* ----------------------------------
-       BRANDING (LOGO E POWERED BY)
-    ----------------------------------- */
-    #branding {
-      position: absolute; left: 0; right: 0; margin: auto; text-align: center; z-index: 13;
-      display: flex; flex-direction: column; align-items: center;
-      transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1); /* Curva de movimento suave (estilo Apple) */
-    }
-
-    #branding img { transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
+    /* --- COREOGRAFIA DA INTERFACE (Via CSS) --- */
     
-    .powered-by { font-size: 0.85rem; color: #86868b; margin-top: 12px; transition: all 1.2s; }
-    .powered-by strong { color: #1d1d1f; }
-
-    /* ESTADO 1: No Centro da Tela (Grande) */
-    .center-stage {
-      bottom: 50%; transform: translateY(50%);
+    /* 1. Logo Sesc (Inicia no centro, move para o rodapé no segundo 1.2) */
+    .footer-splash {
+      position: absolute; left: 50%; bottom: 50%; transform: translate(-50%, 50%) scale(1.5);
+      z-index: 10; text-align: center; width: 100%;
+      animation: moveLogo 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 1.2s;
     }
-    .center-stage img { width: 160px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.08)); }
-    .center-stage .powered-by { font-size: 1rem; }
-
-    /* ESTADO 2: No Rodapé (Pequeno) */
-    .footer-stage {
-      bottom: env(safe-area-inset-bottom, 24px); transform: translateY(-24px);
+    @keyframes moveLogo {
+      to { bottom: calc(env(safe-area-inset-bottom, 24px) + 20px); transform: translate(-50%, 0) scale(1); }
     }
-    .footer-stage img { width: 100px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.05)); }
+    .sesc-logo { width: clamp(100px, 15vw, 140px); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); }
+    
+    /* Texto "Powered by" (Surgindo suavemente) */
+    .powered-by { 
+      font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; opacity: 0;
+      animation: fadeInText 1s ease forwards; animation-delay: 2.2s;
+    }
+    .powered-by strong { color: var(--text-main); }
+    @keyframes fadeInText { to { opacity: 1; } }
+
+    /* 2. Textos Principais Livres na Tela */
+    .center-content { position: relative; z-index: 10; text-align: center; width: 90%; max-width: 500px; margin-top: -80px; }
+    
+    .hero-titles {
+      opacity: 0; transform: translateY(20px);
+      animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 2.0s;
+    }
+    .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px; }
+    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3rem, 10vw, 6rem); font-weight: 800; color: var(--text-main); margin-bottom: -5px; letter-spacing: -2px; line-height: 1; }
+    .brand-unidade { font-family: 'Inter', sans-serif; font-size: clamp(1rem, 2vw, 1.3rem); font-weight: 400; color: var(--text-muted); margin-top: 8px;}
+    
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* 3. Botão de Iniciar */
+    .start-container {
+      margin-top: 50px; opacity: 0; transform: translateY(20px);
+      animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 2.5s;
+    }
+
+    #btn-start {
+      background: #000000; color: #ffffff; font-family: 'Inter', sans-serif;
+      font-size: 1.1rem; font-weight: 600; padding: 18px 45px; border: none; border-radius: 50px;
+      cursor: pointer; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; width: 100%; max-width: 280px;
+    }
+    #btn-start:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); }
+    #btn-start:active { transform: translateY(1px); }
+    
+    /* Estados de Lógica de Carregamento (O Cão de Guarda) */
+    #btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; transform: none; box-shadow: none; }
+    #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); font-size: 1rem; }
+
   </style>
 </head>
 <body>
 
-  <iframe id="app-frame" src="https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec" allow="autoplay; camera; microphone"></iframe>
+  <div id="offline-toast"><span>&#9888;</span> Sem conexão de internet</div>
 
-  <div id="splash-screen">
+  <div id="splash">
     
-    <div class="background-blobs" id="bg-blobs">
-      <div class="blob um"></div>
-      <div class="blob dois"></div>
-    </div>
-
-    <div id="glass-panel">
-      <div class="welcome-text">Bem-vindo ao</div>
-      <div class="title-text">SERVICE</div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div> 
+    
+    <div id="glass-overlay"></div>
+    
+    <div class="center-content">
+      <div class="hero-titles">
+        <div class="welcome-text">Bem-vindo ao</div>
+        <h1 class="brand-service">SERVICE</h1>
+        <h2 class="brand-unidade">Unidade Itaquera</h2>
+      </div>
       
-      <button id="start-btn" class="btn-start" disabled>Carregando...</button>
-    </div>
-
-    <div id="branding" class="center-stage">
-      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
-      <div class="powered-by">
-        Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong>
+      <div class="start-container">
+        <button id="btn-start">Iniciando...</button>
       </div>
     </div>
 
+    <div class="footer-splash">
+      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo" class="sesc-logo">
+      <div class="powered-by">Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong></div>
+    </div>
   </div>
 
+  <iframe 
+     id="app-frame" 
+     allow="geolocation; microphone; camera; clipboard-write; autoplay; fullscreen"
+     sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads allow-storage-access-by-user-activation"
+  ></iframe>
+  
   <script>
-    // 1. REGISTRO DO SERVICE WORKER
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.error('Erro no SW', err));
-      });
-    }
-
-    // 2. ELEMENTOS DA DOM
+    // ELEMENTOS DOM
+    const splash = document.getElementById('splash');
     const iframe = document.getElementById('app-frame');
-    const startBtn = document.getElementById('start-btn');
-    const splashScreen = document.getElementById('splash-screen');
-    const branding = document.getElementById('branding');
-    const glassPanel = document.getElementById('glass-panel');
-    const bgBlobs = document.getElementById('bg-blobs');
+    const btnStart = document.getElementById('btn-start');
+    const offlineToast = document.getElementById('offline-toast');
+    
+    // URL DO SEU GAS
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
 
-    // 3. A COREOGRAFIA DE ABERTURA
-    window.addEventListener('load', () => {
-      // Aguarda 1.8 segundos exibindo a logo no centro, depois move e revela o vidro
-      setTimeout(() => {
-        // Move o logo para o rodapé
-        branding.classList.remove('center-stage');
-        branding.classList.add('footer-stage');
-        
-        // Revela o fundo dinâmico e o painel de vidro
-        bgBlobs.style.opacity = '1';
-        glassPanel.classList.add('show');
-      }, 1800);
-    });
+    // VARIÁVEIS DE ESTADO DA ENGENHARIA
+    let isGasLoaded = false;
+    let hasUserClicked = false;
+    let isErrorState = false;
 
-    // 4. LÓGICA DO IFRAME E BOTÃO
+    // MONITOR DE INTERNET NATIVO
+    window.addEventListener('offline', () => offlineToast.classList.add('show'));
+    window.addEventListener('online', () => offlineToast.classList.remove('show'));
+
+    // 1. CARREGAMENTO PARALELO (Injeta a URL imediatamente)
+    iframe.src = gasUrl;
+
+    // 2. O CÃO DE GUARDA (Fail-safe para o GAS de 15 segundos)
+    const watchdogTimer = setTimeout(() => {
+      if (!isGasLoaded) {
+        isErrorState = true;
+        btnStart.innerText = "Falha na rede. Tentar de novo?";
+        btnStart.classList.add('error-state');
+        btnStart.disabled = false; 
+      }
+    }, 15000);
+
+    // 3. RETORNO DE VIDA DO GOOGLE (Quando carrega)
     iframe.onload = () => {
-      // Quando o GAS carrega por completo lá no fundo
-      startBtn.textContent = 'Iniciar Serviço';
-      startBtn.disabled = false;
+      if (iframe.src === 'about:blank') return;
+      
+      isGasLoaded = true;
+      clearTimeout(watchdogTimer); 
+
+      // Se o usuário já clicou e estava esperando, libera na hora
+      if (hasUserClicked) {
+        revealApp();
+      } else {
+        // Se ainda não clicou, prepara o botão
+        btnStart.innerText = "Acessar Serviço";
+        btnStart.disabled = false;
+      }
     };
 
-    startBtn.addEventListener('click', () => {
-      // Dissolve a tela branca
-      splashScreen.style.opacity = '0';
-      
-      // Revela o iframe do GAS
-      iframe.style.opacity = '1';
+    // 4. LÓGICA DO CLIQUE
+    btnStart.addEventListener('click', () => {
+      if (!navigator.onLine) { 
+        offlineToast.classList.add('show');
+        setTimeout(() => offlineToast.classList.remove('show'), 3000);
+        return; 
+      }
 
-      setTimeout(() => {
-        splashScreen.style.visibility = 'hidden';
-      }, 800); // Tempo do fade out
+      // Tratamento de Erro (Recarrega a página)
+      if (isErrorState) {
+        window.location.reload();
+        return;
+      }
 
-      history.pushState({ screen: 'app' }, '', window.location.href);
+      hasUserClicked = true;
+
+      if (isGasLoaded) {
+        // Oculta a Splash e revela o Iframe
+        revealApp();
+        // Prevenção do botão voltar do celular (History Trap)
+        history.pushState({ screen: 'app' }, '', window.location.href);
+      } else {
+        // Segura a ansiedade do usuário
+        btnStart.innerText = "Conectando ao Google...";
+        btnStart.disabled = true;
+      }
     });
 
-    // 5. PREVENÇÃO DO BOTÃO VOLTAR
+    // 5. TRANSIÇÃO LIMPA
+    function revealApp() {
+      splash.classList.add('hidden');
+      iframe.classList.add('loaded');
+    }
+
+    // 6. HISTORY TRAP (Segura o botão de voltar do Celular)
     history.replaceState({ screen: 'splash' }, '', window.location.href);
     window.addEventListener('popstate', (event) => {
       if (event.state && event.state.screen === 'splash') {
-        splashScreen.style.visibility = 'visible';
-        splashScreen.style.opacity = '1';
-        iframe.style.opacity = '0';
+        splash.classList.remove('hidden');
+        iframe.classList.remove('loaded');
       }
     });
+
+    // 7. REGISTRO PWA (Service Worker)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
