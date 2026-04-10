@@ -9,284 +9,209 @@
   
   <title>Service - Itaquera</title>
   
-  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/favicon.png">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon180.png">
-  <link rel="manifest" href="./manifest.json">
-  
+  <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@300;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-color: #ffffff;
+      --bg-white: #ffffff;
       --text-main: #1d1d1f;
       --text-muted: #86868b;
-      --accent-color: #000000;
-      --chair-color: rgba(0, 0, 0, 0.06); /* Cinza super sutil para marca d'água */
+      --accent: #007aff; /* Azul Sesc/Apple */
+      --chair-color: rgba(0, 0, 0, 0.07);
     }
 
-    body, html {
-      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-      font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body, html { 
+      width: 100%; height: 100%; overflow: hidden; 
+      background-color: var(--bg-white); font-family: 'Inter', sans-serif; 
     }
 
-    /* --- TOAST DE OFFLINE --- */
+    /* --- TOAST OFFLINE --- */
     #offline-toast {
       position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-      background: rgba(255, 59, 48, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 59, 48, 0.3); color: #ff3b30;
-      padding: 12px 24px; border-radius: 30px; z-index: 10000;
-      font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 24px;
+      border-radius: 30px; z-index: 10000; font-size: 0.9rem; font-weight: 500;
+      transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
-    #offline-toast.show { top: env(safe-area-inset-top, 24px); }
+    #offline-toast.show { top: env(safe-area-inset-top, 20px); }
 
-    /* --- O NÚCLEO (IFRAME) --- */
+    /* --- IFRAME (SISTEMA GAS) --- */
     #app-frame {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-      opacity: 0; visibility: hidden; z-index: 0; background-color: var(--bg-color);
-      padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
-      transition: opacity 0.8s ease-in-out, visibility 0.8s;
+      position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+      opacity: 0; visibility: hidden; z-index: 1;
+      padding-bottom: env(safe-area-inset-bottom);
+      transition: opacity 0.8s ease-in-out;
     }
-    #app-frame.loaded { opacity: 1; visibility: visible; z-index: 20; pointer-events: all; }
+    #app-frame.active { opacity: 1; visibility: visible; z-index: 50; }
 
     /* --- SPLASH SCREEN --- */
     #splash {
-      position: fixed; inset: 0; background: var(--bg-color);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      z-index: 9000; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
+      position: fixed; inset: 0; background: var(--bg-white);
+      z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.6s ease-out, visibility 0.6s;
     }
-    #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #splash.hide { opacity: 0; visibility: hidden; }
 
-    /* --- ANIMAÇÃO DAS CADEIRAS (WIREFRAME GRID) --- */
-    #chair-grid {
-      position: absolute; bottom: 8vh; left: 0; width: 100%;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      z-index: 1; pointer-events: none;
+    /* --- ANIMAÇÃO LOGÍSTICA --- */
+    #stage {
+      position: absolute; bottom: 12vh; width: 100%; max-width: 900px; height: 160px;
+      overflow: hidden; pointer-events: none;
     }
-    .chair-row {
-      display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px);
+
+    #truck {
+      position: absolute; left: -100px; bottom: 5px; width: 70px; color: var(--accent);
+      z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+      animation: truckMove 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+      animation-delay: 1.2s;
     }
+
+    @keyframes truckMove {
+      0% { left: -100px; }
+      100% { left: 110%; }
+    }
+
+    .chair-row { display: flex; justify-content: center; gap: clamp(8px, 2vw, 20px); margin-top: 8px; }
     .chair {
-      width: clamp(35px, 6vw, 60px); color: var(--chair-color);
-      opacity: 0; /* Inicia invisível */
-      transform: translateY(20px);
-      /* A animação será ativada via JS com delays diferentes */
-      animation: mountChair 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      width: clamp(25px, 5vw, 40px); color: var(--chair-color); opacity: 0;
+      transform: scale(0.8); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+    .chair.revealed { opacity: 1; transform: scale(1); }
 
-    @keyframes mountChair {
-      0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* --- COREOGRAFIA UI --- */
-    .footer-splash {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.4);
-      z-index: 10; text-align: center; width: 100%;
-      animation: moveBranding 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 0.5s;
-    }
-    @keyframes moveBranding {
-      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 70px); transform: translate(-50%, 0) scale(1); }
-    }
-    .footer-splash img { width: 100px; margin-bottom: 8px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.05)); }
-    .powered-by { font-size: 0.8rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 1.2s; }
-    .powered-by strong { color: var(--text-main); }
-    @keyframes fadeIn { to { opacity: 1; } }
-
-    .center-content {
-      position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
-      opacity: 0; transform: translateY(30px);
-      animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 1s; 
+    /* --- CONTEÚDO CENTRAL --- */
+    .hero {
+      text-align: center; z-index: 10; margin-top: -15vh;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeInUp 0.8s forwards 0.6s;
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
-    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -2px; margin: 0; }
-    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
+    .welcome { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 5px; }
+    .title { font-family: 'Montserrat', sans-serif; font-size: clamp(3rem, 12vw, 7rem); font-weight: 800; letter-spacing: -3px; line-height: 0.9; margin: 0; }
+    .subtitle { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 1.8rem); font-weight: 300; text-transform: uppercase; letter-spacing: clamp(6px, 1.5vw, 12px); color: var(--text-main); margin-top: 5px; }
 
-    /* Botão de Ação */
-    #btn-start {
-      background: var(--accent-color); color: #ffffff; border: none; border-radius: 50px;
-      padding: 18px 45px; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
-      cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
+    #btn-access {
+      margin-top: 50px; background: #000; color: #fff; border: none; border-radius: 50px;
+      padding: 20px 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s;
     }
-    #btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); }
-    #btn-start:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-    #btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
-    #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); }
+    #btn-access:disabled { background: #f2f2f7; color: #aeaeb2; cursor: wait; box-shadow: none; }
+    #btn-access:active:not(:disabled) { transform: scale(0.95); }
 
+    /* --- FOOTER --- */
+    .footer {
+      position: absolute; bottom: env(safe-area-inset-bottom, 30px); text-align: center; width: 100%;
+    }
+    .footer img { width: 100px; margin-bottom: 10px; opacity: 0.9; }
+    .powered { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.5px; }
+    .powered strong { color: var(--text-main); }
   </style>
 </head>
 <body>
 
-  <div id="offline-toast">Sem conexão de internet</div>
+  <div id="offline-toast">Sem conexão com a internet</div>
 
   <div id="splash">
-    
-    <div id="chair-grid"></div>
-    
-    <div class="center-content">
-      <div class="welcome-text">Bem-vindo ao</div>
-      <h1 class="brand-service">SERVICE</h1>
-      <h2 class="brand-unit">Unidade Itaquera</h2>
-      
-      <button id="btn-start" disabled>Carregando sistema...</button>
+    <div id="stage">
+      <div id="truck">
+        <svg viewBox="0 0 640 512" fill="currentColor"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
+      </div>
+      <div id="grid-chairs"></div>
     </div>
 
-    <div class="footer-splash">
-      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
-      <div class="powered-by">Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong></div>
+    <div class="hero">
+      <div class="welcome">Bem-vindo ao</div>
+      <h1 class="title">SERVICE</h1>
+      <h2 class="subtitle">Unidade Itaquera</h2>
+      <button id="btn-access" disabled>Carregando...</button>
+    </div>
+
+    <div class="footer">
+      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc">
+      <div class="powered">Powered with <span style="color: #ff3b30;">&#10084;</span> by <strong>Mesaque</strong></div>
     </div>
   </div>
 
-  <iframe 
-     id="app-frame" 
-     allow="geolocation; microphone; camera; clipboard-write; autoplay; fullscreen"
-     sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads"
-  ></iframe>
-  
+  <iframe id="app-frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
+
   <script>
-    // --------------------------------------------------------
-    // GERADOR DO GRID DE CADEIRAS (EFEITO MONTAGEM DE EVENTO)
-    // --------------------------------------------------------
-    function generateChairGrid() {
-      const grid = document.getElementById('chair-grid');
-      // SVG Minimalista de uma Cadeira em Visão Frontal (Estilo Wireframe)
-      const svgChair = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-           <path d="M6 12h12" />
-           <path d="M8 12V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8" />
-           <path d="M8 7h8" />
-           <path d="M6 12l-1.5 9" />
-           <path d="M18 12l1.5 9" />
-           <path d="M10 12l-1 7" />
-           <path d="M14 12l1 7" />
-        </svg>
-      `;
+    const truck = document.getElementById('truck');
+    const grid = document.getElementById('grid-chairs');
+    const iframe = document.getElementById('app-frame');
+    const btn = document.getElementById('btn-access');
+    const toast = document.getElementById('offline-toast');
 
-      // Define quantidade baseada no tamanho da tela
-      const isMobile = window.innerWidth < 768;
-      const rowsCount = isMobile ? 3 : 2; 
-      const colsCount = isMobile ? 6 : 14;
-
-      for (let r = 0; r < rowsCount; r++) {
-        let rowDiv = document.createElement('div');
+    // 1. Criar Grid de Cadeiras dinamicamente
+    function initChairs() {
+      const rows = 3;
+      const cols = window.innerWidth < 768 ? 7 : 15;
+      for (let r = 0; r < rows; r++) {
+        const rowDiv = document.createElement('div');
         rowDiv.className = 'chair-row';
-        // Efeito de perspectiva simples e sobreposição
-        rowDiv.style.transform = `scale(${1 + (r * 0.15)})`;
-        rowDiv.style.marginTop = r === 0 ? '0' : '-10px';
-        
-        for (let c = 0; c < colsCount; c++) {
-          let chair = document.createElement('div');
+        for (let c = 0; c < cols; c++) {
+          const chair = document.createElement('div');
           chair.className = 'chair';
-          chair.innerHTML = svgChair;
-          
-          // O PULO DO GATO: Matemática do Delay
-          // Inicia em 1.2s (quando o texto aparece).
-          // Adiciona atraso baseado na coluna (esquerda para direita) e na fileira.
-          let delay = 1.2 + (c * 0.08) + (r * 0.25);
-          chair.style.animationDelay = `${delay}s`;
-          
+          chair.innerHTML = `<svg viewBox="0 0 448 512" fill="currentColor"><path d="M400 480H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v320c0 26.5-21.5 48-48 48zM96 128H64v256h32V128zm288 0h-32v256h32V128zM256 128h-64v256h64V128z"/></svg>`;
           rowDiv.appendChild(chair);
         }
         grid.appendChild(rowDiv);
       }
     }
-    
-    // Chama a função assim que a página é interpretada
-    generateChairGrid();
 
-    // --------------------------------------------------------
-    // LÓGICA CORE DO PWA E IFRAME
-    // --------------------------------------------------------
-    const splash = document.getElementById('splash');
-    const iframe = document.getElementById('app-frame');
-    const btnStart = document.getElementById('btn-start');
-    const offlineToast = document.getElementById('offline-toast');
-    
-    const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
-
-    let isGasLoaded = false;
-    let hasUserClicked = false;
-    let isErrorState = false;
-
-    window.addEventListener('offline', () => offlineToast.classList.add('show'));
-    window.addEventListener('online', () => offlineToast.classList.remove('show'));
-
-    // 1. Pré-carregamento escondido
-    iframe.src = gasUrl;
-
-    // 2. Watchdog Fail-safe
-    const watchdogTimer = setTimeout(() => {
-      if (!isGasLoaded) {
-        isErrorState = true;
-        btnStart.innerText = "Falha de conexão. Tentar novamente?";
-        btnStart.classList.add('error-state');
-        btnStart.disabled = false;
-      }
-    }, 15000);
-
-    // 3. Iframe finalizou o carregamento
-    iframe.onload = () => {
-      if (iframe.src === 'about:blank') return;
-      
-      isGasLoaded = true;
-      clearTimeout(watchdogTimer); 
-
-      if (hasUserClicked) {
-        revealApp();
-      } else {
-        if (btnStart.disabled && !isErrorState) {
-          btnStart.innerText = "Acessar Serviço";
-          btnStart.disabled = false;
+    // 2. Sensor de revelação (Sync com o caminhão)
+    function animateReveal() {
+      const chairs = document.querySelectorAll('.chair');
+      const step = () => {
+        const truckRect = truck.getBoundingClientRect();
+        chairs.forEach(c => {
+          if (truckRect.right > c.getBoundingClientRect().left + 10) {
+            c.classList.add('revealed');
+          }
+        });
+        if (truckRect.left < window.innerWidth + 100) {
+          requestAnimationFrame(step);
         }
+      };
+      requestAnimationFrame(step);
+    }
+
+    // 3. Inicialização e GAS
+    initChairs();
+    setTimeout(animateReveal, 1200);
+
+    // Carregar GAS no fundo
+    iframe.src = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
+    
+    iframe.onload = () => {
+      btn.innerText = "Acessar Serviço";
+      btn.disabled = false;
+    };
+
+    // 4. Ação do Botão e Histórico
+    btn.onclick = () => {
+      if (!navigator.onLine) {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+        return;
+      }
+      document.getElementById('splash').classList.add('hide');
+      iframe.classList.add('active');
+      history.pushState({ screen: 'app' }, '', '');
+    };
+
+    // Evitar que o botão voltar feche o app no meio do uso
+    history.replaceState({ screen: 'splash' }, '', '');
+    window.onpopstate = (e) => {
+      if (e.state?.screen === 'splash') {
+        document.getElementById('splash').classList.remove('hide');
+        iframe.classList.remove('active');
       }
     };
 
-    // 4. Clique em Iniciar
-    btnStart.addEventListener('click', () => {
-      if (!navigator.onLine) { 
-        offlineToast.classList.add('show');
-        setTimeout(() => offlineToast.classList.remove('show'), 3000);
-        return; 
-      }
-
-      if (isErrorState) { window.location.reload(); return; }
-
-      hasUserClicked = true;
-
-      if (isGasLoaded) {
-        revealApp();
-      } else {
-        btnStart.innerText = "Conectando...";
-        btnStart.disabled = true;
-      }
-    });
-
-    // 5. Transição com Armadilha de Histórico
-    function revealApp() {
-      splash.classList.add('hidden');
-      iframe.classList.add('loaded');
-      history.pushState({ screen: 'app' }, '', window.location.href);
-    }
-
-    history.replaceState({ screen: 'splash' }, '', window.location.href);
-    window.addEventListener('popstate', (event) => {
-      if (event.state && event.state.screen === 'splash') {
-        splash.classList.remove('hidden');
-        iframe.classList.remove('loaded');
-        hasUserClicked = false;
-      }
-    });
-
-    // 6. Service Worker
+    // 5. Registrar PWA
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
-      });
+      navigator.serviceWorker.register('./sw.js');
     }
   </script>
 </body>
