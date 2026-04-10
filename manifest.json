@@ -1,0 +1,31 @@
+{
+  "name": "Service - Itaquera",
+  "short_name": "Service",
+  "description": "Gestão de estoque e administração de entregas de materiais.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
