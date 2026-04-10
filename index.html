@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <meta name="theme-color" id="meta-theme-color" content="#ffffff">
+  
+  <title>Service - Itaquera</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* RESET E VARIÁVEIS BASE */
+    :root {
+      --bg-color: #f5f5f7;
+      --text-main: #1d1d1f;
+      --text-muted: #86868b;
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --btn-bg: #0071e3;
+      --btn-text: #ffffff;
+      --blob-1: rgba(0, 113, 227, 0.3);
+      --blob-2: rgba(52, 199, 89, 0.3);
+    }
+
+    /* ADAPTAÇÃO AUTOMÁTICA PARA MODO ESCURO DO CELULAR */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #000000;
+        --text-main: #f5f5f7;
+        --text-muted: #a1a1a6;
+        --glass-bg: rgba(28, 28, 30, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --btn-bg: #0a84ff;
+        --blob-1: rgba(10, 132, 255, 0.2);
+        --blob-2: rgba(48, 209, 88, 0.2);
+      }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    
+    body, html {
+      width: 100%; height: 100%; overflow: hidden; background-color: var(--bg-color);
+    }
+
+    /* ----------------------------------
+       O IFRAME (RODANDO NO FUNDO)
+    ----------------------------------- */
+    #app-frame {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      border: none; z-index: 1;
+      /* Padding para não esconder conteúdo atrás do Notch do iPhone */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ----------------------------------
+       SPLASH SCREEN (GLASSMORPHISM)
+    ----------------------------------- */
+    #splash-screen {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+      padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom) 24px;
+      transition: opacity 0.6s ease-in-out, visibility 0.6s;
+    }
+
+    /* Animação abstrata de fundo (Logística/Movimento) */
+    .background-blobs {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1;
+    }
+    .blob {
+      position: absolute; border-radius: 50%; filter: blur(60px); animation: float 10s infinite ease-in-out alternate;
+    }
+    .blob.um { width: 300px; height: 300px; background: var(--blob-1); top: -10%; left: -10%; }
+    .blob.dois { width: 400px; height: 400px; background: var(--blob-2); bottom: -20%; right: -10%; animation-delay: -5s; }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.2); }
+    }
+
+    /* O Vidro Fosco */
+    .glass-panel {
+      background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px 24px;
+      text-align: center; width: 100%; max-width: 360px; margin-top: 20vh;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .welcome-text { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .title-text { font-size: 2.5rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px; letter-spacing: -1px; }
+    .subtitle-text { font-size: 1.1rem; font-weight: 400; color: var(--text-main); margin-bottom: 40px; }
+
+    /* Botão com estado de loading */
+    .btn-start {
+      background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 50px;
+      padding: 16px 32px; font-size: 1.1rem; font-weight: 700; width: 100%;
+      cursor: pointer; transition: transform 0.2s, opacity 0.2s;
+    }
+    .btn-start:active { transform: scale(0.96); }
+    .btn-start:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Footer / Rodapé */
+    .footer { text-align: center; margin-bottom: 20px; z-index: 2; }
+    .footer img { max-width: 120px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .powered-by { font-size: 0.8rem; color: var(--text-muted); }
+    .powered-by strong { color: var(--text-main); }
+  </style>
+</head>
+<body>
+
+  <iframe id="app-frame" src="https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec" allow="autoplay; camera; microphone"></iframe>
+
+  <div id="splash-screen">
+    
+    <div class="background-blobs">
+      <div class="blob um"></div>
+      <div class="blob dois"></div>
+    </div>
+
+    <div class="glass-panel">
+      <div class="welcome-text">Bem-vindo ao</div>
+      <div class="title-text">SERVICE</div>
+      <div class="subtitle-text">Unidade Itaquera</div>
+      
+      <button id="start-btn" class="btn-start" disabled>Carregando sistema...</button>
+    </div>
+
+    <div class="footer">
+      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
+      <div class="powered-by">
+        Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. REGISTRO DO SERVICE WORKER (Para o PWA e Offline Cache)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registrado!', reg))
+          .catch(err => console.error('Erro no Service Worker', err));
+      });
+    }
+
+    // 2. AJUSTE DINÂMICO DA COR DA BARRA DE STATUS
+    const metaThemeColor = document.getElementById('meta-theme-color');
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      metaThemeColor.setAttribute('content', '#000000'); // Fica preto no iOS/Android em dark mode
+    }
+
+    // 3. LÓGICA DE LAZY REVEAL DO IFRAME
+    const iframe = document.getElementById('app-frame');
+    const startBtn = document.getElementById('start-btn');
+    const splashScreen = document.getElementById('splash-screen');
+
+    // Quando o Google Apps Script termina de carregar em background
+    iframe.onload = () => {
+      startBtn.textContent = 'Iniciar Serviço';
+      startBtn.disabled = false;
+    };
+
+    // 4. LÓGICA DO BOTÃO E PREVENÇÃO DE BUGS (History Trap)
+    // Definimos o estado inicial do navegador como 'splash'
+    history.replaceState({ screen: 'splash' }, '', window.location.href);
+
+    startBtn.addEventListener('click', () => {
+      // Esconde a tela inicial com fade out suave
+      splashScreen.style.opacity = '0';
+      setTimeout(() => {
+        splashScreen.style.visibility = 'hidden';
+      }, 600); // Aguarda o tempo da transição do CSS
+
+      // Empurra um novo estado para o histórico. 
+      // Se o usuário clicar em "Voltar" no celular, ele cai no popstate abaixo.
+      history.pushState({ screen: 'app' }, '', window.location.href);
+    });
+
+    // Se o usuário apertar o botão físico/gesto de "Voltar" no celular
+    window.addEventListener('popstate', (event) => {
+      if (event.state && event.state.screen === 'splash') {
+        // Traz a Splash Screen de volta ao invés de navegar no iframe ou sair do app
+        splashScreen.style.visibility = 'visible';
+        splashScreen.style.opacity = '1';
+      }
+    });
+  </script>
+</body>
+</html>
