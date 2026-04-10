@@ -14,204 +14,190 @@
   
   <style>
     :root {
-      --bg-white: #ffffff;
+      --bg-color: #ffffff;
       --text-main: #1d1d1f;
       --text-muted: #86868b;
-      --accent: #007aff; /* Azul Sesc/Apple */
-      --chair-color: rgba(0, 0, 0, 0.07);
+      --truck-color: #000000; /* Caminhão Preto conforme pedido */
+      --chair-color: rgba(0, 0, 0, 0.08); /* Cadeiras sutis */
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    
-    body, html { 
-      width: 100%; height: 100%; overflow: hidden; 
-      background-color: var(--bg-white); font-family: 'Inter', sans-serif; 
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background-color: #ffffff; font-family: 'Inter', sans-serif; color: var(--text-main); }
 
-    /* --- TOAST OFFLINE --- */
-    #offline-toast {
-      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8); color: white; padding: 12px 24px;
-      border-radius: 30px; z-index: 10000; font-size: 0.9rem; font-weight: 500;
-      transition: top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    #offline-toast.show { top: env(safe-area-inset-top, 20px); }
-
-    /* --- IFRAME (SISTEMA GAS) --- */
+    /* --- IFRAME (ESCONDIDO TOTALMENTE) --- */
     #app-frame {
-      position: absolute; inset: 0; width: 100%; height: 100%; border: none;
-      opacity: 0; visibility: hidden; z-index: 1;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+      opacity: 0; z-index: -1; pointer-events: none;
+      transition: opacity 1s ease-in-out;
+      /* Suporte safe-area iOS */
+      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
-      transition: opacity 0.8s ease-in-out;
     }
-    #app-frame.active { opacity: 1; visibility: visible; z-index: 50; }
+    #app-frame.loaded { opacity: 1; z-index: 20; pointer-events: all; }
 
     /* --- SPLASH SCREEN --- */
-    #splash {
-      position: fixed; inset: 0; background: var(--bg-white);
-      z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.6s ease-out, visibility 0.6s;
+    #splash-screen {
+      position: absolute; inset: 0; z-index: 10;
+      background-color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.8s ease-in-out, visibility 0.8s;
+      padding: 0 24px;
     }
-    #splash.hide { opacity: 0; visibility: hidden; }
+    #splash-screen.hidden { opacity: 0; visibility: hidden; }
 
-    /* --- ANIMAÇÃO LOGÍSTICA --- */
-    #stage {
-      position: absolute; bottom: 12vh; width: 100%; max-width: 900px; height: 160px;
+    /* --- ANIMAÇÃO LOGÍSTICA (Atrás do Vidro) --- */
+    #logistic-stage {
+      position: absolute; bottom: 8vh; left: 0; width: 100%; height: 160px; z-index: 11;
       overflow: hidden; pointer-events: none;
     }
 
     #truck {
-      position: absolute; left: -100px; bottom: 5px; width: 70px; color: var(--accent);
-      z-index: 10; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-      animation: truckMove 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+      position: absolute; left: -100px; bottom: 10px; width: 80px; color: var(--truck-color);
+      animation: truckPass 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
       animation-delay: 1.2s;
     }
+    @keyframes truckPass { 0% { left: -100px; } 100% { left: 110%; } }
 
-    @keyframes truckMove {
-      0% { left: -100px; }
-      100% { left: 110%; }
-    }
-
-    .chair-row { display: flex; justify-content: center; gap: clamp(8px, 2vw, 20px); margin-top: 8px; }
+    .chair-row { display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px); margin-top: 10px; }
     .chair {
-      width: clamp(25px, 5vw, 40px); color: var(--chair-color); opacity: 0;
-      transform: scale(0.8); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      width: clamp(30px, 5vw, 50px); color: var(--chair-color);
+      opacity: 0; transform: translateY(15px) scale(0.9);
+      animation: chairMount 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
-    .chair.revealed { opacity: 1; transform: scale(1); }
+    @keyframes chairMount { to { opacity: 1; transform: translateY(0) scale(1); } }
 
-    /* --- CONTEÚDO CENTRAL --- */
-    .hero {
-      text-align: center; z-index: 10; margin-top: -15vh;
-      opacity: 0; transform: translateY(20px);
-      animation: fadeInUp 0.8s forwards 0.6s;
+    /* --- PAINEL VIDRO FOSCO (GLASSMORPHISM) --- */
+    #glass-panel {
+      position: relative; z-index: 12; /* Fica acima das cadeiras */
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 30px;
+      padding: 60px 40px; text-align: center; width: 100%; max-width: 800px;
+      opacity: 0; transform: translateY(40px);
+      animation: panelUp 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 1.5s;
     }
-    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes panelUp { to { opacity: 1; transform: translateY(0); } }
 
-    .welcome { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 5px; }
-    .title { font-family: 'Montserrat', sans-serif; font-size: clamp(3rem, 12vw, 7rem); font-weight: 800; letter-spacing: -3px; line-height: 0.9; margin: 0; }
-    .subtitle { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 1.8rem); font-weight: 300; text-transform: uppercase; letter-spacing: clamp(6px, 1.5vw, 12px); color: var(--text-main); margin-top: 5px; }
+    .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
+    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 7rem); font-weight: 800; letter-spacing: -3px; line-height: 1; margin: 0; }
+    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
 
-    #btn-access {
-      margin-top: 50px; background: #000; color: #fff; border: none; border-radius: 50px;
-      padding: 20px 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s;
+    /* Botão Iniciar */
+    .btn-start {
+      background: #000000; color: #ffffff; border: none; border-radius: 50px;
+      padding: 20px 50px; font-size: 1.2rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
-    #btn-access:disabled { background: #f2f2f7; color: #aeaeb2; cursor: wait; box-shadow: none; }
-    #btn-access:active:not(:disabled) { transform: scale(0.95); }
+    .btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
+    .btn-start:active:not(:disabled) { transform: translateY(0) scale(0.96); }
+    .btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
 
-    /* --- FOOTER --- */
-    .footer {
-      position: absolute; bottom: env(safe-area-inset-bottom, 30px); text-align: center; width: 100%;
+    /* --- FOOTER FIXO --- */
+    .footer-splash {
+      position: absolute; bottom: env(safe-area-inset-bottom, 24px); width: 100%; text-align: center; z-index: 10;
     }
-    .footer img { width: 100px; margin-bottom: 10px; opacity: 0.9; }
-    .powered { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.5px; }
-    .powered strong { color: var(--text-main); }
+    .footer-splash img { width: 100px; margin-bottom: 8px; }
+    .powered-by { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.5px; }
+    .powered-by strong { color: var(--text-main); }
   </style>
 </head>
 <body>
 
-  <div id="offline-toast">Sem conexão com a internet</div>
-
-  <div id="splash">
-    <div id="stage">
+  <div id="splash-screen">
+    
+    <div id="logistic-stage">
       <div id="truck">
         <svg viewBox="0 0 640 512" fill="currentColor"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
       </div>
       <div id="grid-chairs"></div>
     </div>
 
-    <div class="hero">
-      <div class="welcome">Bem-vindo ao</div>
-      <h1 class="title">SERVICE</h1>
-      <h2 class="subtitle">Unidade Itaquera</h2>
-      <button id="btn-access" disabled>Carregando...</button>
+    <div id="glass-panel">
+      <div class="welcome-text">Bem-vindo ao</div>
+      <h1 class="brand-service">SERVICE</h1>
+      <h2 class="brand-unit">Unidade Itaquera</h2>
+      
+      <button id="start-btn" class="btn-start" disabled>Carregando sistema...</button>
     </div>
 
-    <div class="footer">
-      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc">
-      <div class="powered">Powered with <span style="color: #ff3b30;">&#10084;</span> by <strong>Mesaque</strong></div>
+    <div class="footer-splash">
+      <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
+      <div class="powered-by">Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong></div>
     </div>
   </div>
 
   <iframe id="app-frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
-
+  
   <script>
-    const truck = document.getElementById('truck');
-    const grid = document.getElementById('grid-chairs');
+    const splash = document.getElementById('splash-screen');
     const iframe = document.getElementById('app-frame');
-    const btn = document.getElementById('btn-access');
-    const toast = document.getElementById('offline-toast');
+    const startBtn = document.getElementById('start-btn');
+    const grid = document.getElementById('grid-chairs');
 
-    // 1. Criar Grid de Cadeiras dinamicamente
+    // 1. Gerar Grid de Cadeiras dinamicamente (Pixel Perfect arrangement)
     function initChairs() {
+      // SVG fa-chair (FontAwesome) - Versão elegante
+      const svgChair = `<svg viewBox="0 0 448 512" fill="currentColor"><path d="M400 480H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v320c0 26.5-21.5 48-48 48zM96 128H64v256h32V128zm288 0h-32v256h32V128zM256 128h-64v256h64V128z"/></svg>`;
+      
       const rows = 3;
-      const cols = window.innerWidth < 768 ? 7 : 15;
+      const cols = window.innerWidth < 768 ? 7 : 16; // Ajusta densidade por tela
+
       for (let r = 0; r < rows; r++) {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'chair-row';
+        rowDiv.style.transform = `scale(${1 + (r * 0.1)})`; // Perspective effect
+        rowDiv.style.opacity = (1 - (r * 0.2)); // Fading effect for distance
+        rowDiv.style.zIndex = 10 - r; // Correct stacking
+        
         for (let c = 0; c < cols; c++) {
           const chair = document.createElement('div');
           chair.className = 'chair';
-          chair.innerHTML = `<svg viewBox="0 0 448 512" fill="currentColor"><path d="M400 480H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v320c0 26.5-21.5 48-48 48zM96 128H64v256h32V128zm288 0h-32v256h32V128zM256 128h-64v256h64V128z"/></svg>`;
+          chair.innerHTML = svgChair;
+          // Inicia animação baseada no delay do caminhão + delay sequencial
+          let delay = 1.7 + (c * 0.08) + (r * 0.3);
+          chair.style.animationDelay = `${delay}s`;
           rowDiv.appendChild(chair);
         }
         grid.appendChild(rowDiv);
       }
     }
-
-    // 2. Sensor de revelação (Sync com o caminhão)
-    function animateReveal() {
-      const chairs = document.querySelectorAll('.chair');
-      const step = () => {
-        const truckRect = truck.getBoundingClientRect();
-        chairs.forEach(c => {
-          if (truckRect.right > c.getBoundingClientRect().left + 10) {
-            c.classList.add('revealed');
-          }
-        });
-        if (truckRect.left < window.innerWidth + 100) {
-          requestAnimationFrame(step);
-        }
-      };
-      requestAnimationFrame(step);
-    }
-
-    // 3. Inicialização e GAS
+    
+    // Inicia a montagem
     initChairs();
-    setTimeout(animateReveal, 1200);
 
-    // Carregar GAS no fundo
+    // 2. Pré-carregamento do Iframe escondido
     iframe.src = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
     
     iframe.onload = () => {
-      btn.innerText = "Acessar Serviço";
-      btn.disabled = false;
+      // Quando o GAS carrega por completo lá no fundo
+      startBtn.textContent = 'Acessar Serviço';
+      startBtn.disabled = false;
     };
 
-    // 4. Ação do Botão e Histórico
-    btn.onclick = () => {
-      if (!navigator.onLine) {
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
-        return;
+    // 3. Ação do Botão Iniciar (Reveal)
+    startBtn.addEventListener('click', () => {
+      splash.classList.add('hidden');
+      iframe.classList.add('loaded'); // Revela o iframe apenas aqui
+      
+      // Empurra um novo estado para proteger o botão voltar
+      history.pushState({ screen: 'app' }, '', window.location.href);
+    });
+
+    // 4. Prevenção do Botão Voltar (History Trap)
+    history.replaceState({ screen: 'splash' }, '', window.location.href);
+    window.addEventListener('popstate', (event) => {
+      if (event.state && event.state.screen === 'splash') {
+        splash.classList.remove('hidden');
+        iframe.classList.remove('loaded');
       }
-      document.getElementById('splash').classList.add('hide');
-      iframe.classList.add('active');
-      history.pushState({ screen: 'app' }, '', '');
-    };
+    });
 
-    // Evitar que o botão voltar feche o app no meio do uso
-    history.replaceState({ screen: 'splash' }, '', '');
-    window.onpopstate = (e) => {
-      if (e.state?.screen === 'splash') {
-        document.getElementById('splash').classList.remove('hide');
-        iframe.classList.remove('active');
-      }
-    };
-
-    // 5. Registrar PWA
+    // 5. Registro do Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
+      });
     }
   </script>
 </body>
