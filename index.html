@@ -21,6 +21,7 @@
       --text-main: #1d1d1f;
       --text-muted: #86868b;
       --accent-color: #000000;
+      --chair-color: rgba(0, 0, 0, 0.06); /* Cinza super sutil para marca d'água */
     }
 
     body, html {
@@ -46,7 +47,7 @@
       padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
       transition: opacity 0.8s ease-in-out, visibility 0.8s;
     }
-    #app-frame.loaded { opacity: 1; visibility: visible; z-index: 20; }
+    #app-frame.loaded { opacity: 1; visibility: visible; z-index: 20; pointer-events: all; }
 
     /* --- SPLASH SCREEN --- */
     #splash {
@@ -56,29 +57,34 @@
     }
     #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    /* ANIMAÇÕES DE FUNDO (Luzes abstratas e suaves) */
-    .blob {
-      position: absolute; border-radius: 50%; filter: blur(80px); z-index: 1; opacity: 0.4;
-      animation: float 15s infinite alternate ease-in-out;
+    /* --- ANIMAÇÃO DAS CADEIRAS (WIREFRAME GRID) --- */
+    #chair-grid {
+      position: absolute; bottom: 8vh; left: 0; width: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      z-index: 1; pointer-events: none;
     }
-    /* Cores corporativas e sutis para manter a elegância no branco */
-    .blob-1 { width: 50vw; height: 50vw; max-width: 600px; max-height: 600px; background: #007aff; top: -15%; left: -10%; animation-delay: 0s; }
-    .blob-2 { width: 60vw; height: 60vw; max-width: 700px; max-height: 700px; background: #34c759; bottom: -15%; right: -10%; animation-delay: -5s; }
-    .blob-3 { width: 40vw; height: 40vw; max-width: 500px; max-height: 500px; background: #5856d6; top: 30%; left: 30%; animation-delay: -10s; }
+    .chair-row {
+      display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px);
+    }
+    .chair {
+      width: clamp(35px, 6vw, 60px); color: var(--chair-color);
+      opacity: 0; /* Inicia invisível */
+      transform: translateY(20px);
+      /* A animação será ativada via JS com delays diferentes */
+      animation: mountChair 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
 
-    @keyframes float {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(6vw, 8vh) scale(1.15); }
+    @keyframes mountChair {
+      0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     /* --- COREOGRAFIA UI --- */
-    
-    /* 1. Branding (Logo e Powered By) - Inicia no centro e desce rápido */
     .footer-splash {
       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.4);
       z-index: 10; text-align: center; width: 100%;
       animation: moveBranding 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 0.5s; /* Começa a descer em meio segundo */
+      animation-delay: 0.5s;
     }
     @keyframes moveBranding {
       to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 70px); transform: translate(-50%, 0) scale(1); }
@@ -86,38 +92,21 @@
     .footer-splash img { width: 100px; margin-bottom: 8px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.05)); }
     .powered-by { font-size: 0.8rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 1.2s; }
     .powered-by strong { color: var(--text-main); }
+    @keyframes fadeIn { to { opacity: 1; } }
 
-    /* 2. Conteúdo Central Livres (Textos e Botão) */
     .center-content {
       position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
       opacity: 0; transform: translateY(30px);
       animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 1s; /* Surge logo após o logo começar a descer */
+      animation-delay: 1s; 
     }
-
-    .welcome-text { 
-      font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); 
-      text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; 
-    }
-    
-    /* Fonte Elegante e Impactante */
-    .brand-service { 
-      font-family: 'Montserrat', sans-serif; 
-      font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 800; color: var(--text-main); 
-      line-height: 1; letter-spacing: -2px; margin: 0;
-    }
-    
-    /* Fonte Fina e Sofisticada */
-    .brand-unit {
-      font-family: 'Montserrat', sans-serif; 
-      font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; color: var(--text-main);
-      text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); 
-      margin-top: 5px; margin-bottom: 60px;
-    }
-
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    /* 3. Botão de Ação */
+    .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
+    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -2px; margin: 0; }
+    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
+
+    /* Botão de Ação */
     #btn-start {
       background: var(--accent-color); color: #ffffff; border: none; border-radius: 50px;
       padding: 18px 45px; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
@@ -126,8 +115,6 @@
     }
     #btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); }
     #btn-start:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-    
-    /* Estados do Botão */
     #btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
     #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); }
 
@@ -138,9 +125,8 @@
   <div id="offline-toast">Sem conexão de internet</div>
 
   <div id="splash">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div> 
+    
+    <div id="chair-grid"></div>
     
     <div class="center-content">
       <div class="welcome-text">Bem-vindo ao</div>
@@ -163,28 +149,77 @@
   ></iframe>
   
   <script>
-    // ELEMENTOS
+    // --------------------------------------------------------
+    // GERADOR DO GRID DE CADEIRAS (EFEITO MONTAGEM DE EVENTO)
+    // --------------------------------------------------------
+    function generateChairGrid() {
+      const grid = document.getElementById('chair-grid');
+      // SVG Minimalista de uma Cadeira em Visão Frontal (Estilo Wireframe)
+      const svgChair = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M6 12h12" />
+           <path d="M8 12V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8" />
+           <path d="M8 7h8" />
+           <path d="M6 12l-1.5 9" />
+           <path d="M18 12l1.5 9" />
+           <path d="M10 12l-1 7" />
+           <path d="M14 12l1 7" />
+        </svg>
+      `;
+
+      // Define quantidade baseada no tamanho da tela
+      const isMobile = window.innerWidth < 768;
+      const rowsCount = isMobile ? 3 : 2; 
+      const colsCount = isMobile ? 6 : 14;
+
+      for (let r = 0; r < rowsCount; r++) {
+        let rowDiv = document.createElement('div');
+        rowDiv.className = 'chair-row';
+        // Efeito de perspectiva simples e sobreposição
+        rowDiv.style.transform = `scale(${1 + (r * 0.15)})`;
+        rowDiv.style.marginTop = r === 0 ? '0' : '-10px';
+        
+        for (let c = 0; c < colsCount; c++) {
+          let chair = document.createElement('div');
+          chair.className = 'chair';
+          chair.innerHTML = svgChair;
+          
+          // O PULO DO GATO: Matemática do Delay
+          // Inicia em 1.2s (quando o texto aparece).
+          // Adiciona atraso baseado na coluna (esquerda para direita) e na fileira.
+          let delay = 1.2 + (c * 0.08) + (r * 0.25);
+          chair.style.animationDelay = `${delay}s`;
+          
+          rowDiv.appendChild(chair);
+        }
+        grid.appendChild(rowDiv);
+      }
+    }
+    
+    // Chama a função assim que a página é interpretada
+    generateChairGrid();
+
+    // --------------------------------------------------------
+    // LÓGICA CORE DO PWA E IFRAME
+    // --------------------------------------------------------
     const splash = document.getElementById('splash');
     const iframe = document.getElementById('app-frame');
     const btnStart = document.getElementById('btn-start');
     const offlineToast = document.getElementById('offline-toast');
     
-    // SUA URL DO GAS
     const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
 
-    // ESTADOS
     let isGasLoaded = false;
     let hasUserClicked = false;
     let isErrorState = false;
 
-    // MONITOR DE REDE
     window.addEventListener('offline', () => offlineToast.classList.add('show'));
     window.addEventListener('online', () => offlineToast.classList.remove('show'));
 
-    // 1. INJEÇÃO DO IFRAME IMEDIATA (Background loading)
+    // 1. Pré-carregamento escondido
     iframe.src = gasUrl;
 
-    // 2. CÃO DE GUARDA (Fail-safe de 15 segundos)
+    // 2. Watchdog Fail-safe
     const watchdogTimer = setTimeout(() => {
       if (!isGasLoaded) {
         isErrorState = true;
@@ -194,7 +229,7 @@
       }
     }, 15000);
 
-    // 3. IFRAME CARREGADO
+    // 3. Iframe finalizou o carregamento
     iframe.onload = () => {
       if (iframe.src === 'about:blank') return;
       
@@ -211,7 +246,7 @@
       }
     };
 
-    // 4. AÇÃO DE CLIQUE
+    // 4. Clique em Iniciar
     btnStart.addEventListener('click', () => {
       if (!navigator.onLine) { 
         offlineToast.classList.add('show');
@@ -231,15 +266,13 @@
       }
     });
 
-    // FUNÇÃO DE TRANSIÇÃO (Lógica + Armadilha de Histórico)
+    // 5. Transição com Armadilha de Histórico
     function revealApp() {
       splash.classList.add('hidden');
       iframe.classList.add('loaded');
-      // Push state para o botão voltar do celular funcionar direito
       history.pushState({ screen: 'app' }, '', window.location.href);
     }
 
-    // 5. PREVENÇÃO DO BOTÃO VOLTAR (Evita sair do PWA sem querer)
     history.replaceState({ screen: 'splash' }, '', window.location.href);
     window.addEventListener('popstate', (event) => {
       if (event.state && event.state.screen === 'splash') {
@@ -249,7 +282,7 @@
       }
     });
 
-    // 6. REGISTRO DO SERVICE WORKER (Cache Offline)
+    // 6. Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
