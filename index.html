@@ -9,7 +9,10 @@
   
   <title>Service - Itaquera</title>
   
-  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/favicon.png">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon180.png">
+  <link rel="manifest" href="./manifest.json">
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@300;800&display=swap" rel="stylesheet">
   
   <style>
@@ -17,108 +20,120 @@
       --bg-color: #ffffff;
       --text-main: #1d1d1f;
       --text-muted: #86868b;
-      --truck-color: #000000; /* Caminhão Preto conforme pedido */
-      --chair-color: rgba(0, 0, 0, 0.08); /* Cadeiras sutis */
+      --accent-color: #000000;
+      --chair-color: rgba(0, 0, 0, 0.06); /* Cinza super sutil para marca d'água */
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background-color: #ffffff; font-family: 'Inter', sans-serif; color: var(--text-main); }
+    body, html {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+    }
 
-    /* --- IFRAME (ESCONDIDO TOTALMENTE) --- */
+    /* --- TOAST DE OFFLINE --- */
+    #offline-toast {
+      position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 59, 48, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 59, 48, 0.3); color: #ff3b30;
+      padding: 12px 24px; border-radius: 30px; z-index: 10000;
+      font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #offline-toast.show { top: env(safe-area-inset-top, 24px); }
+
+    /* --- O NÚCLEO (IFRAME) --- */
     #app-frame {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-      opacity: 0; z-index: -1; pointer-events: none;
-      transition: opacity 1s ease-in-out;
-      /* Suporte safe-area iOS */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+      opacity: 0; visibility: hidden; z-index: 0; background-color: var(--bg-color);
+      padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+      transition: opacity 0.8s ease-in-out, visibility 0.8s;
     }
-    #app-frame.loaded { opacity: 1; z-index: 20; pointer-events: all; }
+    #app-frame.loaded { opacity: 1; visibility: visible; z-index: 20; pointer-events: all; }
 
     /* --- SPLASH SCREEN --- */
-    #splash-screen {
-      position: absolute; inset: 0; z-index: 10;
-      background-color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.8s ease-in-out, visibility 0.8s;
-      padding: 0 24px;
+    #splash {
+      position: fixed; inset: 0; background: var(--bg-color);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 9000; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
     }
-    #splash-screen.hidden { opacity: 0; visibility: hidden; }
+    #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    /* --- ANIMAÇÃO LOGÍSTICA (Atrás do Vidro) --- */
-    #logistic-stage {
-      position: absolute; bottom: 8vh; left: 0; width: 100%; height: 160px; z-index: 11;
-      overflow: hidden; pointer-events: none;
+    /* --- ANIMAÇÃO DAS CADEIRAS (WIREFRAME GRID) --- */
+    #chair-grid {
+      position: absolute; bottom: 8vh; left: 0; width: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      z-index: 1; pointer-events: none;
     }
-
-    #truck {
-      position: absolute; left: -100px; bottom: 10px; width: 80px; color: var(--truck-color);
-      animation: truckPass 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
-      animation-delay: 1.2s;
+    .chair-row {
+      display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px);
     }
-    @keyframes truckPass { 0% { left: -100px; } 100% { left: 110%; } }
-
-    .chair-row { display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px); margin-top: 10px; }
     .chair {
-      width: clamp(30px, 5vw, 50px); color: var(--chair-color);
-      opacity: 0; transform: translateY(15px) scale(0.9);
-      animation: chairMount 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      width: clamp(35px, 6vw, 60px); color: var(--chair-color);
+      opacity: 0; /* Inicia invisível */
+      transform: translateY(20px);
+      /* A animação será ativada via JS com delays diferentes */
+      animation: mountChair 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
-    @keyframes chairMount { to { opacity: 1; transform: translateY(0) scale(1); } }
 
-    /* --- PAINEL VIDRO FOSCO (GLASSMORPHISM) --- */
-    #glass-panel {
-      position: relative; z-index: 12; /* Fica acima das cadeiras */
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 30px;
-      padding: 60px 40px; text-align: center; width: 100%; max-width: 800px;
-      opacity: 0; transform: translateY(40px);
-      animation: panelUp 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 1.5s;
+    @keyframes mountChair {
+      0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
-    @keyframes panelUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* --- COREOGRAFIA UI --- */
+    .footer-splash {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.4);
+      z-index: 10; text-align: center; width: 100%;
+      animation: moveBranding 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes moveBranding {
+      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 70px); transform: translate(-50%, 0) scale(1); }
+    }
+    .footer-splash img { width: 100px; margin-bottom: 8px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.05)); }
+    .powered-by { font-size: 0.8rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 1.2s; }
+    .powered-by strong { color: var(--text-main); }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .center-content {
+      position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
+      opacity: 0; transform: translateY(30px);
+      animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 1s; 
+    }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
     .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
-    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 7rem); font-weight: 800; letter-spacing: -3px; line-height: 1; margin: 0; }
-    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
+    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -2px; margin: 0; }
+    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
 
-    /* Botão Iniciar */
-    .btn-start {
-      background: #000000; color: #ffffff; border: none; border-radius: 50px;
-      padding: 20px 50px; font-size: 1.2rem; font-weight: 600; font-family: 'Inter', sans-serif;
-      cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* Botão de Ação */
+    #btn-start {
+      background: var(--accent-color); color: #ffffff; border: none; border-radius: 50px;
+      padding: 18px 45px; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
     }
-    .btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.25); }
-    .btn-start:active:not(:disabled) { transform: translateY(0) scale(0.96); }
-    .btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
+    #btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); }
+    #btn-start:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+    #btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
+    #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); }
 
-    /* --- FOOTER FIXO --- */
-    .footer-splash {
-      position: absolute; bottom: env(safe-area-inset-bottom, 24px); width: 100%; text-align: center; z-index: 10;
-    }
-    .footer-splash img { width: 100px; margin-bottom: 8px; }
-    .powered-by { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.5px; }
-    .powered-by strong { color: var(--text-main); }
   </style>
 </head>
 <body>
 
-  <div id="splash-screen">
-    
-    <div id="logistic-stage">
-      <div id="truck">
-        <svg viewBox="0 0 640 512" fill="currentColor"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
-      </div>
-      <div id="grid-chairs"></div>
-    </div>
+  <div id="offline-toast">Sem conexão de internet</div>
 
-    <div id="glass-panel">
+  <div id="splash">
+    
+    <div id="chair-grid"></div>
+    
+    <div class="center-content">
       <div class="welcome-text">Bem-vindo ao</div>
       <h1 class="brand-service">SERVICE</h1>
       <h2 class="brand-unit">Unidade Itaquera</h2>
       
-      <button id="start-btn" class="btn-start" disabled>Carregando sistema...</button>
+      <button id="btn-start" disabled>Carregando sistema...</button>
     </div>
 
     <div class="footer-splash">
@@ -127,73 +142,147 @@
     </div>
   </div>
 
-  <iframe id="app-frame" sandbox="allow-forms allow-scripts allow-same-origin allow-popups"></iframe>
+  <iframe 
+     id="app-frame" 
+     allow="geolocation; microphone; camera; clipboard-write; autoplay; fullscreen"
+     sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-modals allow-downloads"
+  ></iframe>
   
   <script>
-    const splash = document.getElementById('splash-screen');
-    const iframe = document.getElementById('app-frame');
-    const startBtn = document.getElementById('start-btn');
-    const grid = document.getElementById('grid-chairs');
+    // --------------------------------------------------------
+    // GERADOR DO GRID DE CADEIRAS (EFEITO MONTAGEM DE EVENTO)
+    // --------------------------------------------------------
+    function generateChairGrid() {
+      const grid = document.getElementById('chair-grid');
+      // SVG Minimalista de uma Cadeira em Visão Frontal (Estilo Wireframe)
+      const svgChair = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M6 12h12" />
+           <path d="M8 12V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8" />
+           <path d="M8 7h8" />
+           <path d="M6 12l-1.5 9" />
+           <path d="M18 12l1.5 9" />
+           <path d="M10 12l-1 7" />
+           <path d="M14 12l1 7" />
+        </svg>
+      `;
 
-    // 1. Gerar Grid de Cadeiras dinamicamente (Pixel Perfect arrangement)
-    function initChairs() {
-      // SVG fa-chair (FontAwesome) - Versão elegante
-      const svgChair = `<svg viewBox="0 0 448 512" fill="currentColor"><path d="M400 480H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v320c0 26.5-21.5 48-48 48zM96 128H64v256h32V128zm288 0h-32v256h32V128zM256 128h-64v256h64V128z"/></svg>`;
-      
-      const rows = 3;
-      const cols = window.innerWidth < 768 ? 7 : 16; // Ajusta densidade por tela
+      // Define quantidade baseada no tamanho da tela
+      const isMobile = window.innerWidth < 768;
+      const rowsCount = isMobile ? 3 : 2; 
+      const colsCount = isMobile ? 6 : 14;
 
-      for (let r = 0; r < rows; r++) {
-        const rowDiv = document.createElement('div');
+      for (let r = 0; r < rowsCount; r++) {
+        let rowDiv = document.createElement('div');
         rowDiv.className = 'chair-row';
-        rowDiv.style.transform = `scale(${1 + (r * 0.1)})`; // Perspective effect
-        rowDiv.style.opacity = (1 - (r * 0.2)); // Fading effect for distance
-        rowDiv.style.zIndex = 10 - r; // Correct stacking
+        // Efeito de perspectiva simples e sobreposição
+        rowDiv.style.transform = `scale(${1 + (r * 0.15)})`;
+        rowDiv.style.marginTop = r === 0 ? '0' : '-10px';
         
-        for (let c = 0; c < cols; c++) {
-          const chair = document.createElement('div');
+        for (let c = 0; c < colsCount; c++) {
+          let chair = document.createElement('div');
           chair.className = 'chair';
           chair.innerHTML = svgChair;
-          // Inicia animação baseada no delay do caminhão + delay sequencial
-          let delay = 1.7 + (c * 0.08) + (r * 0.3);
+          
+          // O PULO DO GATO: Matemática do Delay
+          // Inicia em 1.2s (quando o texto aparece).
+          // Adiciona atraso baseado na coluna (esquerda para direita) e na fileira.
+          let delay = 1.2 + (c * 0.08) + (r * 0.25);
           chair.style.animationDelay = `${delay}s`;
+          
           rowDiv.appendChild(chair);
         }
         grid.appendChild(rowDiv);
       }
     }
     
-    // Inicia a montagem
-    initChairs();
+    // Chama a função assim que a página é interpretada
+    generateChairGrid();
 
-    // 2. Pré-carregamento do Iframe escondido
-    iframe.src = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
+    // --------------------------------------------------------
+    // LÓGICA CORE DO PWA E IFRAME
+    // --------------------------------------------------------
+    const splash = document.getElementById('splash');
+    const iframe = document.getElementById('app-frame');
+    const btnStart = document.getElementById('btn-start');
+    const offlineToast = document.getElementById('offline-toast');
     
+    const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
+
+    let isGasLoaded = false;
+    let hasUserClicked = false;
+    let isErrorState = false;
+
+    window.addEventListener('offline', () => offlineToast.classList.add('show'));
+    window.addEventListener('online', () => offlineToast.classList.remove('show'));
+
+    // 1. Pré-carregamento escondido
+    iframe.src = gasUrl;
+
+    // 2. Watchdog Fail-safe
+    const watchdogTimer = setTimeout(() => {
+      if (!isGasLoaded) {
+        isErrorState = true;
+        btnStart.innerText = "Falha de conexão. Tentar novamente?";
+        btnStart.classList.add('error-state');
+        btnStart.disabled = false;
+      }
+    }, 15000);
+
+    // 3. Iframe finalizou o carregamento
     iframe.onload = () => {
-      // Quando o GAS carrega por completo lá no fundo
-      startBtn.textContent = 'Acessar Serviço';
-      startBtn.disabled = false;
+      if (iframe.src === 'about:blank') return;
+      
+      isGasLoaded = true;
+      clearTimeout(watchdogTimer); 
+
+      if (hasUserClicked) {
+        revealApp();
+      } else {
+        if (btnStart.disabled && !isErrorState) {
+          btnStart.innerText = "Acessar Serviço";
+          btnStart.disabled = false;
+        }
+      }
     };
 
-    // 3. Ação do Botão Iniciar (Reveal)
-    startBtn.addEventListener('click', () => {
-      splash.classList.add('hidden');
-      iframe.classList.add('loaded'); // Revela o iframe apenas aqui
-      
-      // Empurra um novo estado para proteger o botão voltar
-      history.pushState({ screen: 'app' }, '', window.location.href);
+    // 4. Clique em Iniciar
+    btnStart.addEventListener('click', () => {
+      if (!navigator.onLine) { 
+        offlineToast.classList.add('show');
+        setTimeout(() => offlineToast.classList.remove('show'), 3000);
+        return; 
+      }
+
+      if (isErrorState) { window.location.reload(); return; }
+
+      hasUserClicked = true;
+
+      if (isGasLoaded) {
+        revealApp();
+      } else {
+        btnStart.innerText = "Conectando...";
+        btnStart.disabled = true;
+      }
     });
 
-    // 4. Prevenção do Botão Voltar (History Trap)
+    // 5. Transição com Armadilha de Histórico
+    function revealApp() {
+      splash.classList.add('hidden');
+      iframe.classList.add('loaded');
+      history.pushState({ screen: 'app' }, '', window.location.href);
+    }
+
     history.replaceState({ screen: 'splash' }, '', window.location.href);
     window.addEventListener('popstate', (event) => {
       if (event.state && event.state.screen === 'splash') {
         splash.classList.remove('hidden');
         iframe.classList.remove('loaded');
+        hasUserClicked = false;
       }
     });
 
-    // 5. Registro do Service Worker
+    // 6. Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
