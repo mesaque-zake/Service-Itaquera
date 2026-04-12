@@ -231,7 +231,8 @@
       const truckRoutes = [
         { direction: 'Right', startTime: 0, bottom: '26vh', zIndex: 3, truckScale: 0.6 },
         { direction: 'Left',  startTime: 4, bottom: '11vh',  zIndex: 6, truckScale: 1.0 }, 
-        { direction: 'Right', startTime: 8, bottom: '75vh', zIndex: 1,  truckScale: 0.8 }  
+        // Rota do Topo: Ajustada para alinhar com o Header (Logo)
+        { direction: 'Right', startTime: 8, top: '45px', zIndex: 1,  truckScale: 0.8 }  
       ];
 
       const elementsConfig = [
@@ -239,15 +240,17 @@
         { items: 10, icon: 'fa-chair', bottom: '24vh', scale: 0.60, color: '#4a4a4a', zIndex: 2, routeIndex: 0, widthPercent: 0.60 },
         { items: 10, icon: 'fa-chair', bottom: '20vh', scale: 0.75, color: '#3a3a3a', zIndex: 4, routeIndex: 1, widthPercent: 0.70 },
         { items: 10, icon: 'fa-chair', bottom: '15vh', scale: 0.95, color: '#1d1d1f', zIndex: 5, routeIndex: 1, widthPercent: 0.85 },
-        // Configuração das Barreiras (Cones)
-        { items: 10, icon: 'fa-road-barrier', bottom: '75vh', scale: 1.2, color: '#FF8C00', zIndex: 1, routeIndex: 2, widthPercent: 0.80 }
+        // Camada de Sinalização Superior (Alinhada com o Logo)
+        { items: 10, icon: 'special', top: '55px', scale: 1.0, zIndex: 1, routeIndex: 2, widthPercent: 0.90 }
       ];
 
-      // 1. Cria os caminhões
       truckRoutes.forEach((route) => {
         let wrapper = document.createElement('div');
         wrapper.className = 'truck-wrapper';
-        wrapper.style.bottom = route.bottom;
+        // Define se usa bottom (cadeiras) ou top (sinalização superior)
+        if(route.top) wrapper.style.top = route.top;
+        else wrapper.style.bottom = route.bottom;
+
         wrapper.style.zIndex = route.zIndex; 
         wrapper.style.animation = `drive${route.direction} ${truckDuration}s linear forwards`;
         wrapper.style.animationDelay = `${route.startTime}s`;
@@ -262,7 +265,6 @@
         layer.appendChild(wrapper);
       });
 
-      // 2. Posiciona os itens
       elementsConfig.forEach(row => {
         let route = truckRoutes[row.routeIndex];
         let containerWidth = window.innerWidth;
@@ -271,18 +273,31 @@
         let gap = rowWidth / (row.items - 1);
 
         for (let i = 0; i < row.items; i++) {
-          // LÓGICA ESPECIAL PARA OS CONES (ZONA DE EXCLUSÃO)
-          if (row.icon === 'fa-road-barrier') {
-            let progress = i / (row.items - 1);
-            // Se estiver no meio (entre 35% e 65% da largura da fileira), pula a criação
-            if (progress > 0.35 && progress < 0.65) continue;
+          let progress = i / (row.items - 1);
+          let itemIcon = row.icon;
+          let itemColor = row.color;
+
+          // LÓGICA DE SINALIZAÇÃO SUPERIOR (3 BARREIRAS + 3 CONES)
+          if (row.icon === 'special') {
+            if (progress <= 0.25) { 
+                itemIcon = 'fa-road-barrier'; 
+                itemColor = '#FF8C00'; // Laranja para barreiras
+            } else if (progress >= 0.75) { 
+                itemIcon = 'fa-triangle-exclamation'; 
+                itemColor = '#D32F2F'; // Vermelho para cones/triângulos
+            } else { 
+                continue; // Pula o centro (onde fica o logo)
+            }
           }
 
           let item = document.createElement('i');
-          item.className = `fa-solid ${row.icon} assembly-item`;
-          item.style.color = row.color;
+          item.className = `fa-solid ${itemIcon} assembly-item`;
+          item.style.color = itemColor;
           item.style.left = `${startX + (i * gap)}px`;
-          item.style.bottom = row.bottom;
+          
+          if(row.top) item.style.top = row.top;
+          else item.style.bottom = row.bottom;
+
           item.style.zIndex = row.zIndex;
           
           let itemIndexForDelay = route.direction === 'Right' ? i : (row.items - 1 - i);
