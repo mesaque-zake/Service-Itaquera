@@ -1,4 +1,4 @@
-const CACHE_NAME = 'service-v07';
+const CACHE_NAME = 'service-v08';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
