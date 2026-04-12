@@ -162,19 +162,23 @@
 
     /* --- CORTINAS: POWERED DESCENDO --- */
     .footer-splash {
-      position: absolute; left: 50%; 
-      top: 56%; /* Ajustado: nasce levemente abaixo do centro, sem sobrepor o logo */
-      transform: translate(-50%, -50%) scale(1.0);
-      z-index: 5; text-align: center; width: 100%;
+      position: absolute; 
+      left: 0; /* Mudamos de 50% para 0 */
+      width: 100%; /* Garante que ocupe a tela toda de ponta a ponta */
+      top: 56%; 
+      /* Agora usamos apenas translateY, removendo o conflito no eixo X */
+      transform: translateY(-50%) scale(1.0); 
+      z-index: 5; text-align: center;
       animation: movePoweredDown 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       animation-delay: 1.5s; 
     }
     @keyframes movePoweredDown {
       to { 
         top: 100%; 
-        transform: translate(-50%, calc(-100% - env(safe-area-inset-bottom, 24px) - 20px)); 
-        scale: 0.8; 
+        /* Mantemos apenas o movimento no eixo Y na descida */
+        transform: translateY(calc(-100% - env(safe-area-inset-bottom, 24px) - 20px)) scale(0.8); 
       }
+    }
     }
 
   </style>
