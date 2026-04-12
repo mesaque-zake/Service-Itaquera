@@ -100,8 +100,8 @@
     /* --- O TOQUE FINAL: Camada de Vidro Fosco (Glassmorphism) --- */
     .glass-overlay {
       position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1;
-      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); /* Desfoca a animação */
-      background: rgba(255, 255, 255, 0.4); /* Textura de vidro */
+      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); /* Desfoque super suave */
+      background: rgba(255, 255, 255, 0.15); /* Quase transparente */
     }
 
     /* --- CONTEÚDO PRINCIPAL (Flutua na Frente do Vidro, Nítido) --- */
@@ -230,7 +230,6 @@
 
       // 1. Cria os caminhões 
       truckRoutes.forEach((route) => {
-        // O Wrapper (Lida com o movimento Esquerda/Direita)
         let wrapper = document.createElement('div');
         wrapper.className = 'truck-wrapper';
         wrapper.style.bottom = route.bottom;
@@ -238,7 +237,6 @@
         wrapper.style.animation = `drive${route.direction} ${truckDuration}s linear forwards`;
         wrapper.style.animationDelay = `${route.startTime}s`;
         
-        // O Ícone (Lida com a cor, direção do bico e tamanho da perspectiva)
         let truckIcon = document.createElement('i');
         truckIcon.className = 'fa-solid fa-truck';
         truckIcon.style.color = 'var(--sesc-azul)';
@@ -255,7 +253,6 @@
         let route = truckRoutes[row.routeIndex];
         let containerWidth = window.innerWidth;
         
-        // O Trapézio: Calcula as margens laterais baseada na porcentagem de largura da fileira
         let rowWidth = containerWidth * row.widthPercent;
         let startX = (containerWidth - rowWidth) / 2; // Centralizado
         let gap = rowWidth / (row.items - 1);
@@ -275,7 +272,7 @@
           
           setTimeout(() => {
             item.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
-            item.style.opacity = '1'; // Cor sólida, mas suavizada pelo vidro
+            item.style.opacity = '1'; 
             item.style.transform = `scale(${row.scale})`;
           }, popDelay * 1000);
 
