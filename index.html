@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon180.png">
   <link rel="manifest" href="./manifest.json">
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@300;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@300;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
@@ -59,8 +59,7 @@
       position: fixed; inset: 0; z-index: 9000; 
       transition: opacity 0.8s ease-out, visibility 0.8s; 
       overflow: hidden;
-      /* O Segredo do Alinhamento Perfeito */
-      display: grid; place-items: center; 
+      display: grid; place-items: center; /* Alinhamento Central Indestrutível */
       background-color: var(--bg-color);
     }
     #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -68,7 +67,7 @@
     /* LUZES DE FUNDO (Blobs Animados Sesc) - Nível 1 */
     .bg-blobs {
       position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
-      filter: blur(100px); opacity: 0.25; mix-blend-mode: multiply; pointer-events: none;
+      filter: blur(100px); opacity: 0.20; mix-blend-mode: multiply; pointer-events: none;
     }
     .blob { position: absolute; border-radius: 50%; animation: blobMove 18s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; }
     .blob-azul { width: 75vw; height: 75vw; background-color: var(--sesc-azul); top: -15%; left: -20%; }
@@ -84,7 +83,7 @@
     }
 
     .truck-wrapper { position: absolute; opacity: 0; font-size: 3.5rem; will-change: transform, left, opacity; }
-    .truck-wrapper i { display: block; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.1)); }
+    .truck-wrapper i { display: block; filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.1)); }
     
     @keyframes driveRight {
       0% { left: -30vw; opacity: 1; }
@@ -99,59 +98,63 @@
 
     .assembly-item { position: absolute; opacity: 0; transform: scale(0); will-change: transform, opacity; }
 
-    /* --- O TOQUE FINAL: Camada de Vidro Fosco (Glassmorphism) - Nível 3 --- */
+    /* --- Película de Vidro Fosco (Glassmorphism) Ajustada - Nível 3 --- */
     .glass-overlay {
       position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;
-      /* Efeito de vinheta para focar o centro e suavizar o fundo elegantemente */
-      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
-      backdrop-filter: blur(5px) saturate(110%); -webkit-backdrop-filter: blur(5px) saturate(110%);
-      border-top: 1px solid rgba(255, 255, 255, 0.4); /* Reflexo superior do vidro */
+      /* Background mais limpo e sutil */
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.3) 100%);
+      /* Reduzi o blur de 5px para 1.5px para revelar detalhes da animação */
+      backdrop-filter: blur(1.5px) saturate(110%); -webkit-backdrop-filter: blur(1.5px) saturate(110%);
+      border-top: 1px solid rgba(255, 255, 255, 0.3); 
     }
 
-    /* --- CONTEÚDO PRINCIPAL (Flutua na Frente, Nível 4) --- */
+    /* --- CONTEÚDO PRINCIPAL (Nível 4) --- */
     .center-content {
       position: relative; z-index: 4; text-align: center; width: 90%; max-width: 800px;
       opacity: 0; transform: translateY(20px);
       animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 2.2s; /* Após logo descer */
+      animation-delay: 2.2s; 
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
     .welcome-text { 
-      font-size: 1rem; font-weight: 800; color: var(--text-muted); 
+      font-size: 0.95rem; font-weight: 600; color: var(--text-muted); 
       text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; 
     }
     
     .brand-service { 
-      font-family: 'Montserrat', sans-serif; font-size: clamp(4rem, 12vw, 9rem); 
-      font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin: 0;
+      /* Trocado para Poppins para mais identidade e robustez */
+      font-family: 'Poppins', sans-serif; font-size: clamp(3.8rem, 12vw, 8.5rem); 
+      font-weight: 900; line-height: 1.05; letter-spacing: -0.05em; margin: 0;
       
-      /* Efeito metálico / joia */
-      background: linear-gradient(110deg, #1d1d1f 35%, #a1a1a6 50%, #1d1d1f 65%);
+      /* Efeito metálico mais definido */
+      background: linear-gradient(110deg, #1d1d1f 30%, #b0b0b5 50%, #1d1d1f 70%);
       background-size: 200% auto;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: lightSweep 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.05));
+      filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.05));
     }
     @keyframes lightSweep { to { background-position: 200% center; } }
 
     .brand-unit { 
-      font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2rem); 
+      font-family: 'Poppins', sans-serif; 
+      /* Diminuído o tamanho e ajustado o espaçamento para mais elegância */
+      font-size: clamp(1rem, 3vw, 1.4rem); 
       font-weight: 300; color: var(--text-main); text-transform: uppercase; 
-      letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; 
+      letter-spacing: clamp(5px, 0.8vw, 10px); margin-top: 0px; margin-bottom: 50px; 
     }
 
     /* Botão Azul Premium */
     #btn-start {
       background: #e5e5ea; color: #86868b;
-      border: none; border-radius: 50px; padding: 18px 50px; 
-      font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      border: none; border-radius: 50px; padding: 17px 48px; 
+      font-size: 1.05rem; font-weight: 600; font-family: 'Inter', sans-serif;
       cursor: wait; box-shadow: none; outline: none; -webkit-tap-highlight-color: transparent;
       transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
-    /* Efeito de "Respirar" enquanto carrega */
+    /* Efeito pulse enquanto prepara */
     #btn-start:disabled { animation: pulseBtn 2s infinite ease-in-out; }
     @keyframes pulseBtn {
       0% { transform: scale(1); opacity: 0.8; }
@@ -175,7 +178,7 @@
       animation: moveBranding 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       animation-delay: 1.5s; 
     }
-    /* Correção do cálculo do rodapé para não cortar a tela */
+    /* Correção matemática para rodapé não cortar */
     @keyframes moveBranding {
       to { 
         top: 100%; 
@@ -225,26 +228,42 @@
   
   <script>
     // --------------------------------------------------------
-    // COREOGRAFIA 3D: TRAPÉZIO E ESPAÇAMENTO PROGRESSIVO
+    // COREOGRAFIA 3D: AJUSTADA PARA FORMAR PLATEIA UNIDA
     // --------------------------------------------------------
     function playAssemblyAnimation() {
       const layer = document.getElementById('assembly-layer');
-      const truckDuration = 4; // 4 segundos por passagem
+      const truckDuration = 4;
       
+      // Rotas do caminhão ajustadas para as novas posições das fileiras
       const truckRoutes = [
-        { direction: 'Right', startTime: 0, bottom: '24vh', zIndex: 10, truckScale: 0.6 },
-        { direction: 'Left',  startTime: 4, bottom: '8vh',  zIndex: 20, truckScale: 1.0 }, 
+        // Passagem 1: Fundo (Caminhão Menor) - Subiu levemente
+        { direction: 'Right', startTime: 0, bottom: '27vh', zIndex: 10, truckScale: 0.6 },
+        // Passagem 2: Frente (Caminhão Maior) - Desceu levemente
+        { direction: 'Left',  startTime: 4, bottom: '15vh',  zIndex: 20, truckScale: 1.0 }, 
+        // Passagem 3: Topo (Barreiras) - Ficou igual
         { direction: 'Right', startTime: 8, bottom: '70vh', zIndex: 5,  truckScale: 0.8 }  
       ];
 
+      // Definição da Geometria (Trapézio Progressivo)
+      // APONTAMENTO: Diminuído os espaçamentos (gaps) para parecer uma plateia unida.
       const elementsConfig = [
-        { items: 10, icon: 'fa-chair', bottom: '25vh', scale: 0.55, color: '#4a4a4a', zIndex: 1, routeIndex: 0, widthPercent: 0.50 },
-        { items: 10, icon: 'fa-chair', bottom: '22vh', scale: 0.70, color: '#3b3b3b', zIndex: 2, routeIndex: 0, widthPercent: 0.60 },
-        { items: 10, icon: 'fa-chair', bottom: '12vh', scale: 0.85, color: '#2c2c2c', zIndex: 3, routeIndex: 1, widthPercent: 0.70 },
-        { items: 10, icon: 'fa-chair', bottom: '4vh',  scale: 1.05, color: '#1d1d1f', zIndex: 4, routeIndex: 1, widthPercent: 0.85 },
+        // O Fundo (Achatado e mais claro para perspectiva)
+        { items: 10, icon: 'fa-chair', bottom: '28vh', scale: 0.50, color: '#5a5a5a', zIndex: 1, routeIndex: 0, widthPercent: 0.50 },
+        { items: 10, icon: 'fa-chair', bottom: '25vh', scale: 0.60, color: '#4a4a4a', zIndex: 2, routeIndex: 0, widthPercent: 0.60 },
+        
+        // REDUÇÃO DO CORREDOR CENTRAL: Fileira 2 aproximada da 3 (Gap de 7vh)
+        
+        // A Frente (Espaçada e mais escura)
+        { items: 10, icon: 'fa-chair', bottom: '18vh', scale: 0.80, color: '#3a3a3a', zIndex: 3, routeIndex: 1, widthPercent: 0.70 },
+        
+        // REDUÇÃO DO GAP FRONTAL: Fileira 1 aproximada da 2 (Gap de 6vh)
+        { items: 10, icon: 'fa-chair', bottom: '12vh',  scale: 1.00, color: '#1d1d1f', zIndex: 4, routeIndex: 1, widthPercent: 0.85 },
+        
+        // Barreiras de trânsito (Cones) no topo
         { items: 4, icon: 'fa-road-barrier', bottom: '70vh', scale: 1.2, color: '#FF8C00', zIndex: 1, routeIndex: 2, widthPercent: 0.60 }
       ];
 
+      // 1. Cria os caminhões 
       truckRoutes.forEach((route) => {
         let wrapper = document.createElement('div');
         wrapper.className = 'truck-wrapper';
@@ -263,12 +282,13 @@
         layer.appendChild(wrapper);
       });
 
+      // 2. Posiciona as cadeiras e barreiras (Matemática do Trapézio)
       elementsConfig.forEach(row => {
         let route = truckRoutes[row.routeIndex];
         let containerWidth = window.innerWidth;
         
         let rowWidth = containerWidth * row.widthPercent;
-        let startX = (containerWidth - rowWidth) / 2; 
+        let startX = (containerWidth - rowWidth) / 2; // Centralizado
         let gap = rowWidth / (row.items - 1);
 
         for (let i = 0; i < row.items; i++) {
@@ -285,7 +305,7 @@
           let popDelay = route.startTime + (truckDuration * (itemIndexForDelay / row.items)) + 0.3; 
           
           setTimeout(() => {
-            // Curva bézier customizada para efeito de "mola" nas cadeiras
+            // Curva bézier customizada para efeito de "mola" (overshoot) nas cadeiras
             item.style.transition = "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
             item.style.opacity = '1'; 
             item.style.transform = `scale(${row.scale})`;
@@ -296,6 +316,7 @@
       });
     }
     
+    // Inicia a coreografia
     playAssemblyAnimation();
 
     // --------------------------------------------------------
@@ -306,17 +327,21 @@
     const btnStart = document.getElementById('btn-start');
     const offlineToast = document.getElementById('offline-toast');
     
+    // URL do iFrame do Google Apps Script (GAS)
     const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
 
     let isGasLoaded = false;
     let hasUserClicked = false;
     let isErrorState = false;
 
+    // Monitoramento de Conexão
     window.addEventListener('offline', () => offlineToast.classList.add('show'));
     window.addEventListener('online', () => offlineToast.classList.remove('show'));
 
+    // Carrega o iFrame em background
     iframe.src = gasUrl;
 
+    // Watchdog: Se não carregar em 15s, assume erro
     const watchdogTimer = setTimeout(() => {
       if (!isGasLoaded) {
         isErrorState = true;
@@ -327,15 +352,19 @@
       }
     }, 15000);
 
+    // Quando o iFrame termina de carregar
     iframe.onload = () => {
+      // Evita falsos positivos de about:blank
       if (iframe.src === 'about:blank') return;
       
       isGasLoaded = true;
-      clearTimeout(watchdogTimer); 
+      clearTimeout(watchdogTimer); // Cancela o watchdog
 
+      // Se o usuário já clicou antes, revela o app direto
       if (hasUserClicked) {
         revealApp();
       } else {
+        // Se ainda está preparando, habilita o botão
         if (btnStart.disabled && !isErrorState) {
           btnStart.innerText = "Acessar";
           btnStart.classList.add('ready');
@@ -344,13 +373,16 @@
       }
     };
 
+    // Ação do Botão
     btnStart.addEventListener('click', () => {
+      // Se estiver offline, mostra toast e não faz nada
       if (!navigator.onLine) { 
         offlineToast.classList.add('show');
         setTimeout(() => offlineToast.classList.remove('show'), 3000);
         return; 
       }
 
+      // Se for estado de erro, recarrega a página inteira
       if (isErrorState) { window.location.reload(); return; }
 
       hasUserClicked = true;
@@ -358,18 +390,22 @@
       if (isGasLoaded) {
         revealApp();
       } else {
+        // Se clicou mas o GAS ainda não carregou
         btnStart.innerText = "Conectando...";
         btnStart.classList.remove('ready');
         btnStart.disabled = true;
       }
     });
 
+    // Função de Revelação do PWA
     function revealApp() {
       splash.classList.add('hidden');
       iframe.classList.add('loaded');
+      // Adiciona estado no histórico para o botão "voltar" do Android fechar o PWA corretamente
       history.pushState({ screen: 'app' }, '', window.location.href);
     }
 
+    // Gestão do Botão Voltar (Android)
     history.replaceState({ screen: 'splash' }, '', window.location.href);
     window.addEventListener('popstate', (event) => {
       if (event.state && event.state.screen === 'splash') {
@@ -379,6 +415,7 @@
       }
     });
 
+    // Registro do Service Worker para PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Erro:', err));
