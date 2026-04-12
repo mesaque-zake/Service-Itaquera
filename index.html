@@ -14,7 +14,6 @@
   <link rel="manifest" href="./manifest.json">
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@300;900&display=swap" rel="stylesheet">
-  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
@@ -27,6 +26,8 @@
       --sesc-azul: #005EB8;
       --sesc-amarelo: #FFC72C;
     }
+
+    * { box-sizing: border-box; }
 
     body, html {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -55,32 +56,35 @@
 
     /* --- SPLASH SCREEN PRINCIPAL --- */
     #splash {
-      position: fixed; inset: 0; z-index: 9000; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
+      position: fixed; inset: 0; z-index: 9000; 
+      transition: opacity 0.8s ease-out, visibility 0.8s; 
+      overflow: hidden;
+      /* O Segredo do Alinhamento Perfeito */
+      display: grid; place-items: center; 
+      background-color: var(--bg-color);
     }
     #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    /* LUZES DE FUNDO (Blobs Animados Sesc) - Fundo Máximo */
+    /* LUZES DE FUNDO (Blobs Animados Sesc) - Nível 1 */
     .bg-blobs {
-      position: absolute; inset: 0; width: 100%; height: 100%; z-index: -3;
-      filter: blur(90px); opacity: 0.15;
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+      filter: blur(100px); opacity: 0.25; mix-blend-mode: multiply; pointer-events: none;
     }
-    .blob { position: absolute; border-radius: 50%; animation: blobMove 15s infinite alternate ease-in-out; }
-    .blob-azul { width: 70vw; height: 70vw; background-color: var(--sesc-azul); top: -10%; left: -20%; }
-    .blob-amarelo { width: 60vw; height: 60vw; background-color: var(--sesc-amarelo); bottom: -10%; right: -20%; animation-delay: -5s; }
+    .blob { position: absolute; border-radius: 50%; animation: blobMove 18s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; }
+    .blob-azul { width: 75vw; height: 75vw; background-color: var(--sesc-azul); top: -15%; left: -20%; }
+    .blob-amarelo { width: 65vw; height: 65vw; background-color: var(--sesc-amarelo); bottom: -15%; right: -20%; animation-delay: -5s; }
     @keyframes blobMove {
       0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(15%, 15%) scale(1.2); }
+      100% { transform: translate(10%, 15%) scale(1.15); }
     }
 
-    /* CAMADA DE ANIMAÇÃO DA MONTAGEM - Atrás do Vidro */
+    /* CAMADA DE ANIMAÇÃO DA MONTAGEM - Nível 2 */
     #assembly-layer {
-      position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none;
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;
     }
 
-    .truck-wrapper {
-      position: absolute; opacity: 0; font-size: 3.5rem; 
-    }
-    .truck-wrapper i { display: block; }
+    .truck-wrapper { position: absolute; opacity: 0; font-size: 3.5rem; will-change: transform, left, opacity; }
+    .truck-wrapper i { display: block; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.1)); }
     
     @keyframes driveRight {
       0% { left: -30vw; opacity: 1; }
@@ -93,68 +97,91 @@
       100% { left: -30vw; opacity: 0; }
     }
 
-    .assembly-item {
-      position: absolute; opacity: 0; transform: scale(0);
-    }
+    .assembly-item { position: absolute; opacity: 0; transform: scale(0); will-change: transform, opacity; }
 
-    /* --- O TOQUE FINAL: Camada de Vidro Fosco (Glassmorphism) --- */
+    /* --- O TOQUE FINAL: Camada de Vidro Fosco (Glassmorphism) - Nível 3 --- */
     .glass-overlay {
-      position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1;
-      backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); /* Desfoque super suave */
-      background: rgba(255, 255, 255, 0.15); /* Quase transparente */
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;
+      /* Efeito de vinheta para focar o centro e suavizar o fundo elegantemente */
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
+      backdrop-filter: blur(5px) saturate(110%); -webkit-backdrop-filter: blur(5px) saturate(110%);
+      border-top: 1px solid rgba(255, 255, 255, 0.4); /* Reflexo superior do vidro */
     }
 
-    /* --- CONTEÚDO PRINCIPAL (Flutua na Frente do Vidro, Nítido) --- */
+    /* --- CONTEÚDO PRINCIPAL (Flutua na Frente, Nível 4) --- */
     .center-content {
-      position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
+      position: relative; z-index: 4; text-align: center; width: 90%; max-width: 800px;
       opacity: 0; transform: translateY(20px);
       animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       animation-delay: 2.2s; /* Após logo descer */
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    .welcome-text { font-size: 1rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; }
+    .welcome-text { 
+      font-size: 1rem; font-weight: 800; color: var(--text-muted); 
+      text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; 
+    }
     
     .brand-service { 
       font-family: 'Montserrat', sans-serif; font-size: clamp(4rem, 12vw, 9rem); 
-      font-weight: 900; line-height: 1; letter-spacing: -3px; margin: 0;
+      font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin: 0;
       
-      background: linear-gradient(110deg, #1d1d1f 35%, #ffffff 50%, #1d1d1f 65%);
+      /* Efeito metálico / joia */
+      background: linear-gradient(110deg, #1d1d1f 35%, #a1a1a6 50%, #1d1d1f 65%);
       background-size: 200% auto;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: lightSweep 4s linear infinite;
+      animation: lightSweep 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.05));
     }
     @keyframes lightSweep { to { background-position: 200% center; } }
 
-    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; }
+    .brand-unit { 
+      font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2rem); 
+      font-weight: 300; color: var(--text-main); text-transform: uppercase; 
+      letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; 
+    }
 
-    /* Botão Azul */
+    /* Botão Azul Premium */
     #btn-start {
       background: #e5e5ea; color: #86868b;
       border: none; border-radius: 50px; padding: 18px 50px; 
       font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
-      cursor: wait; box-shadow: none;
-      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
+      cursor: wait; box-shadow: none; outline: none; -webkit-tap-highlight-color: transparent;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
+    /* Efeito de "Respirar" enquanto carrega */
+    #btn-start:disabled { animation: pulseBtn 2s infinite ease-in-out; }
+    @keyframes pulseBtn {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(0.98); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+
     #btn-start.ready {
       background: var(--sesc-azul); color: #ffffff; cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0, 94, 184, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 94, 184, 0.3); animation: none; transform: scale(1); opacity: 1;
     }
     #btn-start.ready:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 94, 184, 0.4); }
-    #btn-start.ready:active { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 94, 184, 0.2); }
-    #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); }
+    #btn-start.ready:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(0, 94, 184, 0.2); }
+    #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); animation: none; }
 
-    /* --- RODAPÉ --- */
+    /* --- RODAPÉ (Nível 5) --- */
     .footer-splash {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.3);
-      z-index: 10; text-align: center; width: 100%;
-      animation: moveBranding 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      position: absolute; left: 50%; top: 50%; 
+      transform: translate(-50%, -50%) scale(1.3);
+      z-index: 5; text-align: center; width: 100%;
+      animation: moveBranding 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       animation-delay: 1.5s; 
     }
+    /* Correção do cálculo do rodapé para não cortar a tela */
     @keyframes moveBranding {
-      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 60px); transform: translate(-50%, 0) scale(1); }
+      to { 
+        top: 100%; 
+        transform: translate(-50%, calc(-100% - env(safe-area-inset-bottom, 24px) - 20px)); 
+        scale: 1; 
+      }
     }
     .footer-splash img { width: 90px; margin-bottom: 5px; }
     .powered-by { font-size: 0.75rem; color: var(--text-muted); opacity: 1; margin-top: 5px;}
@@ -186,7 +213,7 @@
 
     <div class="footer-splash">
       <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
-      <div class="powered-by">Powered with <span style="color:#FFFFFF; text-shadow: 0 0 2px rgba(0,0,0,0.3);">&#10084;</span> by <strong>Mesaque</strong></div>
+      <div class="powered-by">Powered with <span style="color:#ff3b30; text-shadow: 0 0 4px rgba(255,59,48,0.3);">&#10084;</span> by <strong>Mesaque</strong></div>
     </div>
   </div>
 
@@ -204,31 +231,20 @@
       const layer = document.getElementById('assembly-layer');
       const truckDuration = 4; // 4 segundos por passagem
       
-      // Definição das rotas do caminhão (Perspectiva de Tamanho)
       const truckRoutes = [
-        // Passagem 1: Fundo (Caminhão Menor)
         { direction: 'Right', startTime: 0, bottom: '24vh', zIndex: 10, truckScale: 0.6 },
-        // Passagem 2: Frente (Caminhão Maior)
         { direction: 'Left',  startTime: 4, bottom: '8vh',  zIndex: 20, truckScale: 1.0 }, 
-        // Passagem 3: Topo (Barreiras, Tamanho Médio)
         { direction: 'Right', startTime: 8, bottom: '70vh', zIndex: 5,  truckScale: 0.8 }  
       ];
 
-      // Definição dos itens fixando 10 em cada fileira (Cores Sólidas)
       const elementsConfig = [
-        // O Fundo (Achatado): Fileiras 4 e 3 quase coladas (3vh de gap), 10 cadeiras espremidas (50% e 60% de largura)
         { items: 10, icon: 'fa-chair', bottom: '25vh', scale: 0.55, color: '#4a4a4a', zIndex: 1, routeIndex: 0, widthPercent: 0.50 },
         { items: 10, icon: 'fa-chair', bottom: '22vh', scale: 0.70, color: '#3b3b3b', zIndex: 2, routeIndex: 0, widthPercent: 0.60 },
-        
-        // A Frente (Espaçado): Fileiras 2 e 1 distantes (Corredor 10vh gap), 10 cadeiras espalhadas (70% e 85% de largura)
         { items: 10, icon: 'fa-chair', bottom: '12vh', scale: 0.85, color: '#2c2c2c', zIndex: 3, routeIndex: 1, widthPercent: 0.70 },
         { items: 10, icon: 'fa-chair', bottom: '4vh',  scale: 1.05, color: '#1d1d1f', zIndex: 4, routeIndex: 1, widthPercent: 0.85 },
-        
-        // Barreiras de trânsito
         { items: 4, icon: 'fa-road-barrier', bottom: '70vh', scale: 1.2, color: '#FF8C00', zIndex: 1, routeIndex: 2, widthPercent: 0.60 }
       ];
 
-      // 1. Cria os caminhões 
       truckRoutes.forEach((route) => {
         let wrapper = document.createElement('div');
         wrapper.className = 'truck-wrapper';
@@ -240,7 +256,6 @@
         let truckIcon = document.createElement('i');
         truckIcon.className = 'fa-solid fa-truck';
         truckIcon.style.color = 'var(--sesc-azul)';
-        
         let flipDir = route.direction === 'Left' ? -1 : 1;
         truckIcon.style.transform = `scaleX(${flipDir}) scale(${route.truckScale})`;
 
@@ -248,13 +263,12 @@
         layer.appendChild(wrapper);
       });
 
-      // 2. Posiciona as cadeiras e barreiras (Matemática do Trapézio)
       elementsConfig.forEach(row => {
         let route = truckRoutes[row.routeIndex];
         let containerWidth = window.innerWidth;
         
         let rowWidth = containerWidth * row.widthPercent;
-        let startX = (containerWidth - rowWidth) / 2; // Centralizado
+        let startX = (containerWidth - rowWidth) / 2; 
         let gap = rowWidth / (row.items - 1);
 
         for (let i = 0; i < row.items; i++) {
@@ -271,7 +285,8 @@
           let popDelay = route.startTime + (truckDuration * (itemIndexForDelay / row.items)) + 0.3; 
           
           setTimeout(() => {
-            item.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            // Curva bézier customizada para efeito de "mola" nas cadeiras
+            item.style.transition = "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
             item.style.opacity = '1'; 
             item.style.transform = `scale(${row.scale})`;
           }, popDelay * 1000);
@@ -281,7 +296,6 @@
       });
     }
     
-    // Inicia a coreografia ao abrir
     playAssemblyAnimation();
 
     // --------------------------------------------------------
