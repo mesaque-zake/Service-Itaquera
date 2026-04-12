@@ -143,9 +143,10 @@
     #btn-start.ready:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(0, 94, 184, 0.2); }
     #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); animation: none; }
 
-    /* --- CORTINAS: LOGO SUBINDO --- */
+        /* --- CORTINAS: LOGO SUBINDO --- */
     .header-splash {
-      position: absolute; left: 50%; top: 50%; 
+      position: absolute; left: 50%; 
+      top: 44%; /* Ajustado: nasce levemente acima do centro */
       transform: translate(-50%, -50%) scale(1.3);
       z-index: 5; text-align: center;
       animation: moveLogoUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
@@ -161,7 +162,8 @@
 
     /* --- CORTINAS: POWERED DESCENDO --- */
     .footer-splash {
-      position: absolute; left: 50%; top: 50%; 
+      position: absolute; left: 50%; 
+      top: 56%; /* Ajustado: nasce levemente abaixo do centro, sem sobrepor o logo */
       transform: translate(-50%, -50%) scale(1.3);
       z-index: 5; text-align: center; width: 100%;
       animation: movePoweredDown 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
@@ -174,8 +176,6 @@
         scale: 1; 
       }
     }
-    .powered-by { font-size: 0.75rem; color: var(--text-muted); opacity: 1; }
-    .powered-by strong { color: var(--text-main); font-weight: 600;}
 
   </style>
 </head>
