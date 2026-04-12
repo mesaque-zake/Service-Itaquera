@@ -27,7 +27,7 @@
       --sesc-azul: #005EB8;
       --sesc-amarelo: #FFC72C;
       
-      --watermark-color: rgba(0, 0, 0, 0.8); /* Base para os ícones, a opacidade real é dada no JS */
+      --watermark-color: rgba(0, 0, 0, 0.9); /* Base forte, opacidade controlada no JS */
     }
 
     body, html {
@@ -66,60 +66,58 @@
     /* LUZES DE FUNDO (Blobs Animados Sesc) */
     .bg-blobs {
       position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2;
-      filter: blur(90px); opacity: 0.15; /* Bem sutil */
+      filter: blur(100px); opacity: 0.12; /* Bem sutil */
     }
-    .blob { position: absolute; border-radius: 50%; animation: blobMove 15s infinite alternate ease-in-out; }
-    .blob-azul { width: 70vw; height: 70vw; background-color: var(--sesc-azul); top: -10%; left: -20%; }
-    .blob-amarelo { width: 60vw; height: 60vw; background-color: var(--sesc-amarelo); bottom: -10%; right: -20%; animation-delay: -5s; }
+    .blob { position: absolute; border-radius: 50%; animation: blobMove 20s infinite alternate ease-in-out; }
+    .blob-azul { width: 75vw; height: 75vw; background-color: var(--sesc-azul); top: -15%; left: -25%; }
+    .blob-amarelo { width: 65vw; height: 65vw; background-color: var(--sesc-amarelo); bottom: -15%; right: -25%; animation-delay: -7s; }
     @keyframes blobMove {
       0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(15%, 15%) scale(1.2); }
+      100% { transform: translate(12%, 10%) scale(1.15); }
     }
 
     /* CAMADA DE ANIMAÇÃO DA MONTAGEM (Marca d'água no fundo) */
     #assembly-layer {
       position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
-      /* O container inteiro tem uma leve transparência base para não brigar com os textos */
-      opacity: 0.85; 
+      opacity: 0.8; /* Leve transparência geral */
     }
 
     .truck {
-      position: absolute; font-size: 2.5rem; color: #a1a1a6;
+      position: absolute; font-size: 2.8rem; color: #b0b0b5;
       opacity: 0; /* Inicia invisível */
+      transform: scaleX(1); /* Padrão: Frente para a Direita */
     }
-    /* Animação do Caminhão Esquerda -> Direita */
+    /* Animação do Caminhão Esquerda -> Direita (Começa fora da tela à esquerda) */
     @keyframes driveRight {
-      0% { left: -20%; opacity: 1; transform: scaleX(1); }
-      90% { opacity: 1; }
-      100% { left: 120%; opacity: 0; transform: scaleX(1); }
+      0% { left: -30%; opacity: 1; }
+      100% { left: 130%; opacity: 1; }
     }
-    /* Animação do Caminhão Direita -> Esquerda */
+    /* Animação do Caminhão Direita -> Esquerda (Vira e volta) */
     @keyframes driveLeft {
-      0% { left: 120%; opacity: 1; transform: scaleX(-1); }
-      90% { opacity: 1; }
-      100% { left: -20%; opacity: 0; transform: scaleX(-1); }
+      0% { left: 130%; opacity: 1; transform: scaleX(-1); }
+      100% { left: -30%; opacity: 1; transform: scaleX(-1); }
     }
 
-    /* Cadeiras e Palcos */
+    /* Cadeiras e Sinalização */
     .assembly-item {
       position: absolute; color: var(--watermark-color);
       opacity: 0; transform: scale(0);
-      animation: popItem 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      /* NENHUM blur aqui mais, para mobile */
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    @keyframes popItem { to { opacity: 1; transform: scale(1); } }
 
     /* --- CONTEÚDO PRINCIPAL (Letreiro e Botão) --- */
     .center-content {
       position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
       opacity: 0; transform: translateY(20px);
       animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 0.2s; /* Aparece super rápido, independente da animação de fundo */
+      animation-delay: 0.1s; /* Imediato */
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    .welcome-text { font-size: 1rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; }
+    .welcome-text { font-size: 1.05rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; }
     
-    /* Efeito de Luz Metálica no Letreiro SERVICE */
+    /* Letreiro SERVICE com efeito metálico */
     .brand-service { 
       font-family: 'Montserrat', sans-serif; font-size: clamp(4rem, 12vw, 9rem); 
       font-weight: 900; line-height: 1; letter-spacing: -3px; margin: 0;
@@ -129,17 +127,17 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: lightSweep 4s linear infinite;
+      animation: lightSweep 5s linear infinite;
     }
     @keyframes lightSweep { to { background-position: 200% center; } }
 
-    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; }
+    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2.1rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; }
 
     /* Botão Azul */
     #btn-start {
       background: #e5e5ea; color: #86868b; /* Estado Desabilitado Inicial */
       border: none; border-radius: 50px; padding: 18px 50px; 
-      font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      font-size: 1.15rem; font-weight: 600; font-family: 'Inter', sans-serif;
       cursor: wait; box-shadow: none;
       transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
     }
@@ -156,14 +154,14 @@
     .footer-splash {
       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.2);
       z-index: 10; text-align: center; width: 100%;
-      animation: moveBranding 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 1.5s; 
+      animation: moveBranding 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 1.2s; /* Desce rápido */
     }
     @keyframes moveBranding {
-      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 65px); transform: translate(-50%, 0) scale(1); }
+      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 60px); transform: translate(-50%, 0) scale(1); }
     }
     .footer-splash img { width: 90px; margin-bottom: 5px; }
-    .powered-by { font-size: 0.75rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 2.2s; }
+    .powered-by { font-size: 0.75rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 1.8s; }
     .powered-by strong { color: var(--text-main); font-weight: 600;}
     @keyframes fadeIn { to { opacity: 1; } }
 
@@ -192,7 +190,7 @@
 
     <div class="footer-splash">
       <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
-      <div class="powered-by">Powered with <span style="color:#FFFFFF; text-shadow: 0 0 2px rgba(0,0,0,0.3);">&#10084;</span> by <strong>Mesaque</strong></div>
+      <div class="powered-by">Powered with <span style="color:#FFFFFF; text-shadow: 0 0 2px rgba(0,0,0,0.2);">&#10084;</span> by <strong>Mesaque</strong></div>
     </div>
   </div>
 
@@ -204,73 +202,72 @@
   
   <script>
     // --------------------------------------------------------
-    // GERADOR DA COREOGRAFIA DE MONTAGEM (PLATEIA + PALCO)
+    // GERADOR DA COREOGRAFIA DE MONTAGEM (ÁGIL E NÍTIDA)
     // --------------------------------------------------------
     function playAssemblyAnimation() {
       const layer = document.getElementById('assembly-layer');
-      const truckDuration = 3.5; // Segundos por passagem do caminhão
+      const truckDuration = 3.5; // Duração por passagem
       
-      // Configuração das 4 Fileiras (Perspectiva) e do Palco
+      // Nova Configuração: Mais rápida (2 Passagens para cadeiras) e nítida.
       const rowsConfig = [
-        // Fileira 4 (Fundo Máximo)
-        { items: 14, icon: 'fa-chair', bottom: '28vh', scale: 0.5, opacity: 0.15, blur: '3px', zIndex: 1, startTime: 0, direction: 'Right' },
-        // Fileira 3 (Meio Fundo)
-        { items: 12, icon: 'fa-chair', bottom: '22vh', scale: 0.7, opacity: 0.25, blur: '2px', zIndex: 2, startTime: 3.5, direction: 'Left' },
-        // Fileira 2 (Meio Frente)
-        { items: 10, icon: 'fa-chair', bottom: '15vh', scale: 0.9, opacity: 0.35, blur: '1px', zIndex: 3, startTime: 7.0, direction: 'Right' },
-        // Fileira 1 (Frente Máxima)
-        { items: 8, icon: 'fa-chair', bottom: '6vh', scale: 1.1, opacity: 0.50, blur: '0px', zIndex: 4, startTime: 10.5, direction: 'Left' },
-        // Palcos (Topo)
-        { items: 3, icon: 'fa-person-chalkboard', bottom: '70vh', scale: 1.5, opacity: 0.40, blur: '1px', zIndex: 0, startTime: 14.0, direction: 'Right' }
+        // PASSAGEM 1 (E -> D): Fileiras 4 e 3 do fundo (Menores e mais transparentes)
+        { rowId: 4, items: 13, icon: 'fa-chair', bottom: '26vh', scale: 0.55, opacity: 0.15, zIndex: 1, direction: 'Right', startTime: 0, delayFactor: 0.8 },
+        { rowId: 3, items: 11, icon: 'fa-chair', bottom: '21vh', scale: 0.70, opacity: 0.25, zIndex: 2, direction: 'Right', startTime: 0, delayFactor: 1.0 },
+
+        // PASSAGEM 2 (D -> E): Fileiras 2 e 1 da frente (Maiores e mais sólidas)
+        { rowId: 2, items: 9,  icon: 'fa-chair', bottom: '15vh', scale: 0.85, opacity: 0.35, zIndex: 3, direction: 'Left', startTime: 3.5, delayFactor: 0.8 },
+        { rowId: 1, items: 7,  icon: 'fa-chair', bottom: '7vh',  scale: 1.00, opacity: 0.50, zIndex: 4, direction: 'Left', startTime: 3.5, delayFactor: 1.0 },
+        
+        // PASSAGEM 3 (Topo): Sinalização de Trânsito (Área de Serviço)
+        { rowId: 'T', items: 3, icon: 'fa-traffic-cone', bottom: '70vh', scale: 1.5, opacity: 0.40, zIndex: 0, direction: 'Right', startTime: 7.0, delayFactor: 1 }
       ];
 
-      rowsConfig.forEach((row, rowIndex) => {
-        // 1. Criar o Caminhão para esta passagem
-        let truck = document.createElement('i');
-        truck.className = 'fa-solid fa-truck-ramp-box truck';
-        truck.style.bottom = row.bottom;
-        truck.style.zIndex = row.zIndex + 10; // Caminhão passa na frente da sua respectiva fileira
-        truck.style.filter = `blur(${row.blur})`;
-        truck.style.animation = `drive${row.direction} ${truckDuration}s linear forwards`;
-        truck.style.animationDelay = `${row.startTime}s`;
-        layer.appendChild(truck);
+      // Lógica para criar os caminhões (um por passagem/direção)
+      const passes = ['Right', 'Left', 'Right'];
+      const passTimes = [0, 3.5, 7.0];
+      const passBottoms = ['23vh', '11vh', '70vh']; // Médias de altura das fileiras correspondentes
+      const passScales = [0.65, 0.95, 1.3];
 
-        // 2. Criar os Itens (Cadeiras/Mesas)
+      passes.forEach((dir, i) => {
+        let truck = document.createElement('i');
+        // Ícone de frente de caminhão para não cortar
+        truck.className = 'fa-solid fa-truck-front truck';
+        truck.style.bottom = passBottoms[i];
+        truck.style.transform = `scale(${passScales[i]})` + (dir === 'Left' ? ' scaleX(-1)' : '');
+        truck.style.zIndex = 20; 
+        truck.style.animation = `drive${dir} ${truckDuration}s linear forwards`;
+        truck.style.animationDelay = `${passTimes[i]}s`;
+        layer.appendChild(truck);
+      });
+
+      // Lógica para criar os Itens sincronizados
+      rowsConfig.forEach((row) => {
         let containerWidth = window.innerWidth;
-        // Centraliza os itens deixando margem
-        let startX = containerWidth * 0.1; 
-        let endX = containerWidth * 0.9;
+        // Centraliza os itens deixando margem nas laterais do mobile
+        let startX = containerWidth * 0.15; 
+        let endX = containerWidth * 0.85;
         let gap = (endX - startX) / (row.items - 1);
 
         for (let i = 0; i < row.items; i++) {
           let item = document.createElement('i');
           item.className = `fa-solid ${row.icon} assembly-item`;
           
-          // Posicionamento X
           let posX = startX + (i * gap);
           item.style.left = `${posX}px`;
           item.style.bottom = row.bottom;
           item.style.zIndex = row.zIndex;
           
-          // Estilização da Perspectiva (Scale embutido no keyframe ou hardcoded via transform customizado, opacidade via inline style)
-          // Usamos Custom Properties (CSS Variables) para passar a escala para o keyframe sem sobrescrever a animação
-          item.style.setProperty('--target-scale', row.scale);
-          item.style.opacity = '0'; // Opacidade inicial
-          item.style.filter = `blur(${row.blur})`;
-
-          // Gambiarra elegante para keyframe dinâmico: injetamos a opacidade e scale finais diretamente
-          item.style.animation = `none`; // reseta
-          
-          // Sincronização com o caminhão:
-          // Se a direção é Right, o caminhão vai do item 0 ao N.
-          // Se é Left, o caminhão vai do item N ao 0.
+          // Sincronização e Pulo do Gato para reaparecimento nítido:
+          // Invertemos o índice se o caminhão for para a esquerda.
           let itemIndexForDelay = row.direction === 'Right' ? i : (row.items - 1 - i);
-          let popDelay = row.startTime + (truckDuration * (itemIndexForDelay / row.items)) + 0.3; // 0.3s atrás do caminhão
           
-          // Recriamos a animação injetando os valores de perspectiva no final
+          // O delayFactor ajuda a escalonar a saída das duas fileiras simultâneas
+          let popDelay = row.startTime + (truckDuration * (itemIndexForDelay / (row.items - 1))) + (0.2 * row.delayFactor);
+          
+          // Ativamos a transição via JS após o delay para 'pipocar' na tela
           setTimeout(() => {
-            item.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
             item.style.opacity = row.opacity;
+            // NENHUM blur aqui, apenas escala e opacidade para mobile
             item.style.transform = `scale(${row.scale})`;
           }, popDelay * 1000);
 
@@ -283,26 +280,28 @@
     playAssemblyAnimation();
 
     // --------------------------------------------------------
-    // LÓGICA CORE DO PWA E IFRAME
+    // LÓGICA CORE DO PWA E IFRAME (Independente da animação)
     // --------------------------------------------------------
     const splash = document.getElementById('splash');
     const iframe = document.getElementById('app-frame');
     const btnStart = document.getElementById('btn-start');
     const offlineToast = document.getElementById('offline-toast');
     
+    // URL real do GAS
     const gasUrl = "https://script.google.com/macros/s/AKfycbxzjNxBAt3Q3_Ox0j8Mg-fKkoyJtyUHLUUFjHjfa_yH9yv8VrP0dMmKXyKAF_pbx5z-mg/exec";
 
     let isGasLoaded = false;
     let hasUserClicked = false;
     let isErrorState = false;
 
+    // Monitor de Conexão
     window.addEventListener('offline', () => offlineToast.classList.add('show'));
     window.addEventListener('online', () => offlineToast.classList.remove('show'));
 
     // 1. Pré-carregamento escondido
     iframe.src = gasUrl;
 
-    // 2. Watchdog Fail-safe
+    // 2. Watchdog Fail-safe (Tempo reduzido para 15s)
     const watchdogTimer = setTimeout(() => {
       if (!isGasLoaded) {
         isErrorState = true;
@@ -324,7 +323,7 @@
         revealApp();
       } else {
         if (btnStart.disabled && !isErrorState) {
-          // Muda o visual e texto do botão para "Acessar" (Azul)
+          // Muda o visual e texto do botão para "Acessar" (Azul institucional)
           btnStart.innerText = "Acessar";
           btnStart.classList.add('ready');
           btnStart.disabled = false;
