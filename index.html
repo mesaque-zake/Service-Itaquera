@@ -13,15 +13,21 @@
   <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/Icon180.png">
   <link rel="manifest" href="./manifest.json">
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@300;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@300;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     :root {
       --bg-color: #ffffff;
       --text-main: #1d1d1f;
       --text-muted: #86868b;
-      --accent-color: #000000;
-      --chair-color: rgba(0, 0, 0, 0.06); /* Cinza super sutil para marca d'água */
+      
+      /* Cores Institucionais Sesc */
+      --sesc-azul: #005EB8;
+      --sesc-amarelo: #FFC72C;
+      
+      --watermark-color: rgba(0, 0, 0, 0.8); /* Base para os ícones, a opacidade real é dada no JS */
     }
 
     body, html {
@@ -40,7 +46,7 @@
     }
     #offline-toast.show { top: env(safe-area-inset-top, 24px); }
 
-    /* --- O NÚCLEO (IFRAME) --- */
+    /* --- IFRAME BACKGROUND --- */
     #app-frame {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
       opacity: 0; visibility: hidden; z-index: 0; background-color: var(--bg-color);
@@ -49,74 +55,117 @@
     }
     #app-frame.loaded { opacity: 1; visibility: visible; z-index: 20; pointer-events: all; }
 
-    /* --- SPLASH SCREEN --- */
+    /* --- SPLASH SCREEN (INTERFACE PRINCIPAL) --- */
     #splash {
-      position: fixed; inset: 0; background: var(--bg-color);
+      position: fixed; inset: 0; background: transparent;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       z-index: 9000; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
     }
     #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-    /* --- ANIMAÇÃO DAS CADEIRAS (WIREFRAME GRID) --- */
-    #chair-grid {
-      position: absolute; bottom: 8vh; left: 0; width: 100%;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      z-index: 1; pointer-events: none;
+    /* LUZES DE FUNDO (Blobs Animados Sesc) */
+    .bg-blobs {
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2;
+      filter: blur(90px); opacity: 0.15; /* Bem sutil */
     }
-    .chair-row {
-      display: flex; justify-content: center; width: 100%; gap: clamp(10px, 3vw, 30px);
+    .blob { position: absolute; border-radius: 50%; animation: blobMove 15s infinite alternate ease-in-out; }
+    .blob-azul { width: 70vw; height: 70vw; background-color: var(--sesc-azul); top: -10%; left: -20%; }
+    .blob-amarelo { width: 60vw; height: 60vw; background-color: var(--sesc-amarelo); bottom: -10%; right: -20%; animation-delay: -5s; }
+    @keyframes blobMove {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(15%, 15%) scale(1.2); }
     }
-    .chair {
-      width: clamp(35px, 6vw, 60px); color: var(--chair-color);
+
+    /* CAMADA DE ANIMAÇÃO DA MONTAGEM (Marca d'água no fundo) */
+    #assembly-layer {
+      position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
+      /* O container inteiro tem uma leve transparência base para não brigar com os textos */
+      opacity: 0.85; 
+    }
+
+    .truck {
+      position: absolute; font-size: 2.5rem; color: #a1a1a6;
       opacity: 0; /* Inicia invisível */
-      transform: translateY(20px);
-      /* A animação será ativada via JS com delays diferentes */
-      animation: mountChair 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    /* Animação do Caminhão Esquerda -> Direita */
+    @keyframes driveRight {
+      0% { left: -20%; opacity: 1; transform: scaleX(1); }
+      90% { opacity: 1; }
+      100% { left: 120%; opacity: 0; transform: scaleX(1); }
+    }
+    /* Animação do Caminhão Direita -> Esquerda */
+    @keyframes driveLeft {
+      0% { left: 120%; opacity: 1; transform: scaleX(-1); }
+      90% { opacity: 1; }
+      100% { left: -20%; opacity: 0; transform: scaleX(-1); }
     }
 
-    @keyframes mountChair {
-      0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+    /* Cadeiras e Palcos */
+    .assembly-item {
+      position: absolute; color: var(--watermark-color);
+      opacity: 0; transform: scale(0);
+      animation: popItem 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
+    @keyframes popItem { to { opacity: 1; transform: scale(1); } }
 
-    /* --- COREOGRAFIA UI --- */
-    .footer-splash {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.4);
-      z-index: 10; text-align: center; width: 100%;
-      animation: moveBranding 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 0.5s;
-    }
-    @keyframes moveBranding {
-      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 70px); transform: translate(-50%, 0) scale(1); }
-    }
-    .footer-splash img { width: 100px; margin-bottom: 8px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.05)); }
-    .powered-by { font-size: 0.8rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 1.2s; }
-    .powered-by strong { color: var(--text-main); }
-    @keyframes fadeIn { to { opacity: 1; } }
-
+    /* --- CONTEÚDO PRINCIPAL (Letreiro e Botão) --- */
     .center-content {
       position: relative; z-index: 10; text-align: center; width: 90%; max-width: 800px;
-      opacity: 0; transform: translateY(30px);
+      opacity: 0; transform: translateY(20px);
       animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      animation-delay: 1s; 
+      animation-delay: 0.2s; /* Aparece super rápido, independente da animação de fundo */
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-    .welcome-text { font-size: clamp(0.9rem, 1.5vw, 1.2rem); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 8px; }
-    .brand-service { font-family: 'Montserrat', sans-serif; font-size: clamp(3.5rem, 10vw, 8rem); font-weight: 800; color: var(--text-main); line-height: 1; letter-spacing: -2px; margin: 0; }
-    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: 5px; margin-bottom: 60px; }
-
-    /* Botão de Ação */
-    #btn-start {
-      background: var(--accent-color); color: #ffffff; border: none; border-radius: 50px;
-      padding: 18px 45px; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
-      cursor: pointer; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
+    .welcome-text { font-size: 1rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0px; }
+    
+    /* Efeito de Luz Metálica no Letreiro SERVICE */
+    .brand-service { 
+      font-family: 'Montserrat', sans-serif; font-size: clamp(4rem, 12vw, 9rem); 
+      font-weight: 900; line-height: 1; letter-spacing: -3px; margin: 0;
+      
+      background: linear-gradient(110deg, #1d1d1f 35%, #ffffff 50%, #1d1d1f 65%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: lightSweep 4s linear infinite;
     }
-    #btn-start:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); }
-    #btn-start:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-    #btn-start:disabled { background: #e5e5ea; color: #86868b; cursor: wait; box-shadow: none; }
+    @keyframes lightSweep { to { background-position: 200% center; } }
+
+    .brand-unit { font-family: 'Montserrat', sans-serif; font-size: clamp(1.2rem, 4vw, 2rem); font-weight: 300; color: var(--text-main); text-transform: uppercase; letter-spacing: clamp(6px, 1vw, 12px); margin-top: -5px; margin-bottom: 50px; }
+
+    /* Botão Azul */
+    #btn-start {
+      background: #e5e5ea; color: #86868b; /* Estado Desabilitado Inicial */
+      border: none; border-radius: 50px; padding: 18px 50px; 
+      font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif;
+      cursor: wait; box-shadow: none;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); outline: none; -webkit-tap-highlight-color: transparent;
+    }
+    /* Estado Ativado (Pronto para Acessar) */
+    #btn-start.ready {
+      background: var(--sesc-azul); color: #ffffff; cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 94, 184, 0.3);
+    }
+    #btn-start.ready:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 94, 184, 0.4); }
+    #btn-start.ready:active { transform: translateY(1px); box-shadow: 0 5px 15px rgba(0, 94, 184, 0.2); }
     #btn-start.error-state { background: #ff3b30; color: #ffffff; box-shadow: 0 8px 25px rgba(255, 59, 48, 0.3); }
+
+    /* --- RODAPÉ --- */
+    .footer-splash {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.2);
+      z-index: 10; text-align: center; width: 100%;
+      animation: moveBranding 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation-delay: 1.5s; 
+    }
+    @keyframes moveBranding {
+      to { top: calc(100% - env(safe-area-inset-bottom, 24px) - 65px); transform: translate(-50%, 0) scale(1); }
+    }
+    .footer-splash img { width: 90px; margin-bottom: 5px; }
+    .powered-by { font-size: 0.75rem; color: var(--text-muted); opacity: 0; animation: fadeIn 0.5s forwards; animation-delay: 2.2s; }
+    .powered-by strong { color: var(--text-main); font-weight: 600;}
+    @keyframes fadeIn { to { opacity: 1; } }
 
   </style>
 </head>
@@ -126,19 +175,24 @@
 
   <div id="splash">
     
-    <div id="chair-grid"></div>
+    <div class="bg-blobs">
+      <div class="blob blob-azul"></div>
+      <div class="blob blob-amarelo"></div>
+    </div>
+    
+    <div id="assembly-layer"></div>
     
     <div class="center-content">
       <div class="welcome-text">Bem-vindo ao</div>
       <h1 class="brand-service">SERVICE</h1>
       <h2 class="brand-unit">Unidade Itaquera</h2>
       
-      <button id="btn-start" disabled>Carregando sistema...</button>
+      <button id="btn-start" disabled>Preparando...</button>
     </div>
 
     <div class="footer-splash">
       <img src="https://raw.githubusercontent.com/mesaque-zake/Service-Itaquera/refs/heads/main/SescLogo.png" alt="Sesc Logo">
-      <div class="powered-by">Powered with <span style="color: #ff2d55;">&#10084;</span> by <strong>Mesaque</strong></div>
+      <div class="powered-by">Powered with <span style="color:#FFFFFF; text-shadow: 0 0 2px rgba(0,0,0,0.3);">&#10084;</span> by <strong>Mesaque</strong></div>
     </div>
   </div>
 
@@ -150,54 +204,83 @@
   
   <script>
     // --------------------------------------------------------
-    // GERADOR DO GRID DE CADEIRAS (EFEITO MONTAGEM DE EVENTO)
+    // GERADOR DA COREOGRAFIA DE MONTAGEM (PLATEIA + PALCO)
     // --------------------------------------------------------
-    function generateChairGrid() {
-      const grid = document.getElementById('chair-grid');
-      // SVG Minimalista de uma Cadeira em Visão Frontal (Estilo Wireframe)
-      const svgChair = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-           <path d="M6 12h12" />
-           <path d="M8 12V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v8" />
-           <path d="M8 7h8" />
-           <path d="M6 12l-1.5 9" />
-           <path d="M18 12l1.5 9" />
-           <path d="M10 12l-1 7" />
-           <path d="M14 12l1 7" />
-        </svg>
-      `;
+    function playAssemblyAnimation() {
+      const layer = document.getElementById('assembly-layer');
+      const truckDuration = 3.5; // Segundos por passagem do caminhão
+      
+      // Configuração das 4 Fileiras (Perspectiva) e do Palco
+      const rowsConfig = [
+        // Fileira 4 (Fundo Máximo)
+        { items: 14, icon: 'fa-chair', bottom: '28vh', scale: 0.5, opacity: 0.15, blur: '3px', zIndex: 1, startTime: 0, direction: 'Right' },
+        // Fileira 3 (Meio Fundo)
+        { items: 12, icon: 'fa-chair', bottom: '22vh', scale: 0.7, opacity: 0.25, blur: '2px', zIndex: 2, startTime: 3.5, direction: 'Left' },
+        // Fileira 2 (Meio Frente)
+        { items: 10, icon: 'fa-chair', bottom: '15vh', scale: 0.9, opacity: 0.35, blur: '1px', zIndex: 3, startTime: 7.0, direction: 'Right' },
+        // Fileira 1 (Frente Máxima)
+        { items: 8, icon: 'fa-chair', bottom: '6vh', scale: 1.1, opacity: 0.50, blur: '0px', zIndex: 4, startTime: 10.5, direction: 'Left' },
+        // Palcos (Topo)
+        { items: 3, icon: 'fa-person-chalkboard', bottom: '70vh', scale: 1.5, opacity: 0.40, blur: '1px', zIndex: 0, startTime: 14.0, direction: 'Right' }
+      ];
 
-      // Define quantidade baseada no tamanho da tela
-      const isMobile = window.innerWidth < 768;
-      const rowsCount = isMobile ? 3 : 2; 
-      const colsCount = isMobile ? 6 : 14;
+      rowsConfig.forEach((row, rowIndex) => {
+        // 1. Criar o Caminhão para esta passagem
+        let truck = document.createElement('i');
+        truck.className = 'fa-solid fa-truck-ramp-box truck';
+        truck.style.bottom = row.bottom;
+        truck.style.zIndex = row.zIndex + 10; // Caminhão passa na frente da sua respectiva fileira
+        truck.style.filter = `blur(${row.blur})`;
+        truck.style.animation = `drive${row.direction} ${truckDuration}s linear forwards`;
+        truck.style.animationDelay = `${row.startTime}s`;
+        layer.appendChild(truck);
 
-      for (let r = 0; r < rowsCount; r++) {
-        let rowDiv = document.createElement('div');
-        rowDiv.className = 'chair-row';
-        // Efeito de perspectiva simples e sobreposição
-        rowDiv.style.transform = `scale(${1 + (r * 0.15)})`;
-        rowDiv.style.marginTop = r === 0 ? '0' : '-10px';
-        
-        for (let c = 0; c < colsCount; c++) {
-          let chair = document.createElement('div');
-          chair.className = 'chair';
-          chair.innerHTML = svgChair;
+        // 2. Criar os Itens (Cadeiras/Mesas)
+        let containerWidth = window.innerWidth;
+        // Centraliza os itens deixando margem
+        let startX = containerWidth * 0.1; 
+        let endX = containerWidth * 0.9;
+        let gap = (endX - startX) / (row.items - 1);
+
+        for (let i = 0; i < row.items; i++) {
+          let item = document.createElement('i');
+          item.className = `fa-solid ${row.icon} assembly-item`;
           
-          // O PULO DO GATO: Matemática do Delay
-          // Inicia em 1.2s (quando o texto aparece).
-          // Adiciona atraso baseado na coluna (esquerda para direita) e na fileira.
-          let delay = 1.2 + (c * 0.08) + (r * 0.25);
-          chair.style.animationDelay = `${delay}s`;
+          // Posicionamento X
+          let posX = startX + (i * gap);
+          item.style.left = `${posX}px`;
+          item.style.bottom = row.bottom;
+          item.style.zIndex = row.zIndex;
           
-          rowDiv.appendChild(chair);
+          // Estilização da Perspectiva (Scale embutido no keyframe ou hardcoded via transform customizado, opacidade via inline style)
+          // Usamos Custom Properties (CSS Variables) para passar a escala para o keyframe sem sobrescrever a animação
+          item.style.setProperty('--target-scale', row.scale);
+          item.style.opacity = '0'; // Opacidade inicial
+          item.style.filter = `blur(${row.blur})`;
+
+          // Gambiarra elegante para keyframe dinâmico: injetamos a opacidade e scale finais diretamente
+          item.style.animation = `none`; // reseta
+          
+          // Sincronização com o caminhão:
+          // Se a direção é Right, o caminhão vai do item 0 ao N.
+          // Se é Left, o caminhão vai do item N ao 0.
+          let itemIndexForDelay = row.direction === 'Right' ? i : (row.items - 1 - i);
+          let popDelay = row.startTime + (truckDuration * (itemIndexForDelay / row.items)) + 0.3; // 0.3s atrás do caminhão
+          
+          // Recriamos a animação injetando os valores de perspectiva no final
+          setTimeout(() => {
+            item.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            item.style.opacity = row.opacity;
+            item.style.transform = `scale(${row.scale})`;
+          }, popDelay * 1000);
+
+          layer.appendChild(item);
         }
-        grid.appendChild(rowDiv);
-      }
+      });
     }
     
-    // Chama a função assim que a página é interpretada
-    generateChairGrid();
+    // Inicia a coreografia ao abrir
+    playAssemblyAnimation();
 
     // --------------------------------------------------------
     // LÓGICA CORE DO PWA E IFRAME
@@ -224,12 +307,13 @@
       if (!isGasLoaded) {
         isErrorState = true;
         btnStart.innerText = "Falha de conexão. Tentar novamente?";
+        btnStart.classList.remove('ready');
         btnStart.classList.add('error-state');
         btnStart.disabled = false;
       }
     }, 15000);
 
-    // 3. Iframe finalizou o carregamento
+    // 3. Iframe finalizou o carregamento base
     iframe.onload = () => {
       if (iframe.src === 'about:blank') return;
       
@@ -240,7 +324,9 @@
         revealApp();
       } else {
         if (btnStart.disabled && !isErrorState) {
-          btnStart.innerText = "Acessar Serviço";
+          // Muda o visual e texto do botão para "Acessar" (Azul)
+          btnStart.innerText = "Acessar";
+          btnStart.classList.add('ready');
           btnStart.disabled = false;
         }
       }
@@ -262,6 +348,7 @@
         revealApp();
       } else {
         btnStart.innerText = "Conectando...";
+        btnStart.classList.remove('ready');
         btnStart.disabled = true;
       }
     });
