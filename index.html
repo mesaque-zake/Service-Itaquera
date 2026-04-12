@@ -229,25 +229,21 @@
       const truckDuration = 4;
       
       const truckRoutes = [
-        // Rota 0 (Fundo): Passa entre a fileira 3 e 2 (Z-index 3)
         { direction: 'Right', startTime: 0, bottom: '26vh', zIndex: 3, truckScale: 0.6 },
-        // Rota 1 (Frente): Passa na frente de todos (Z-index 6)
         { direction: 'Left',  startTime: 4, bottom: '11vh',  zIndex: 6, truckScale: 1.0 }, 
-        // Rota 2 (Topo - Barreiras): (Z-index 1)
-        { direction: 'Right', startTime: 8, bottom: '70vh', zIndex: 1,  truckScale: 0.8 }  
+        { direction: 'Right', startTime: 8, bottom: '75vh', zIndex: 1,  truckScale: 0.8 }  
       ];
 
-      // Geometria totalmente contígua, espaçamento progressivo visual (3vh, 4vh, 5vh)
       const elementsConfig = [
         { items: 10, icon: 'fa-chair', bottom: '27vh', scale: 0.50, color: '#5a5a5a', zIndex: 1, routeIndex: 0, widthPercent: 0.50 },
         { items: 10, icon: 'fa-chair', bottom: '24vh', scale: 0.60, color: '#4a4a4a', zIndex: 2, routeIndex: 0, widthPercent: 0.60 },
-        // Fim do corredor: Fileira 2 bem colada na 3
         { items: 10, icon: 'fa-chair', bottom: '20vh', scale: 0.75, color: '#3a3a3a', zIndex: 4, routeIndex: 1, widthPercent: 0.70 },
         { items: 10, icon: 'fa-chair', bottom: '15vh', scale: 0.95, color: '#1d1d1f', zIndex: 5, routeIndex: 1, widthPercent: 0.85 },
-        // Barreiras
-        { items: 4, icon: 'fa-road-barrier', bottom: '70vh', scale: 1.2, color: '#FF8C00', zIndex: 1, routeIndex: 2, widthPercent: 0.60 }
+        // Configuração das Barreiras (Cones)
+        { items: 10, icon: 'fa-road-barrier', bottom: '75vh', scale: 1.2, color: '#FF8C00', zIndex: 1, routeIndex: 2, widthPercent: 0.80 }
       ];
 
+      // 1. Cria os caminhões
       truckRoutes.forEach((route) => {
         let wrapper = document.createElement('div');
         wrapper.className = 'truck-wrapper';
@@ -266,14 +262,22 @@
         layer.appendChild(wrapper);
       });
 
+      // 2. Posiciona os itens
       elementsConfig.forEach(row => {
         let route = truckRoutes[row.routeIndex];
         let containerWidth = window.innerWidth;
         let rowWidth = containerWidth * row.widthPercent;
-        let startX = (containerWidth - rowWidth) / 2; 
+        let startX = (containerWidth - rowWidth) / 2;
         let gap = rowWidth / (row.items - 1);
 
         for (let i = 0; i < row.items; i++) {
+          // LÓGICA ESPECIAL PARA OS CONES (ZONA DE EXCLUSÃO)
+          if (row.icon === 'fa-road-barrier') {
+            let progress = i / (row.items - 1);
+            // Se estiver no meio (entre 35% e 65% da largura da fileira), pula a criação
+            if (progress > 0.35 && progress < 0.65) continue;
+          }
+
           let item = document.createElement('i');
           item.className = `fa-solid ${row.icon} assembly-item`;
           item.style.color = row.color;
